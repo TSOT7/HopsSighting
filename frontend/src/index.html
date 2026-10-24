@@ -1119,8 +1119,10 @@
         // Load Massachusetts state boundary overlay
         loadMassachusettsBoundary();
 
-        // Add Massachusetts city markers with hover tooltips
-        loadMACityMarkers();
+        // Add Massachusetts city markers with hover tooltips (optional).
+        if (typeof loadMACityMarkers === 'function') {
+          loadMACityMarkers();
+        }
       }
 
       // ═══════════════════════════════════════════════════════════════
@@ -1212,7 +1214,8 @@
           area: metrics.area,
           perimeter: metrics.perimeter,
           centroid: metrics.centroid,
-          envScore: generateEnvScore()
+          envScore: generateEnvScore(), // placeholder until the backend responds
+          score: null                   // full backend score payload
         };
         
         // Click handler for re-selection (highlighting)
@@ -1222,8 +1225,39 @@
           updateHexagonInfo(activeHexagon);
         });
         
-        // Immediately update side panel
+        // Immediately update side panel (shows placeholder while loading)
         updateHexagonInfo(activeHexagon);
+        
+        // Fetch the real environmental score from the backend.
+        fetchScoreForHexagon(activeHexagon);
+      }
+      
+      /**
+       * Call the backend /api/score for a hexagon's centroid and update
+       * the panel with the real rating. Falls back silently to the
+       * placeholder score if the backend is unreachable.
+       */
+      async function fetchScoreForHexagon(hexData) {
+        const [lat, lon] = hexData.centroid;
+        try {
+          const res = await fetch(`${CONFIG.apiBase}/api/score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat, lon })
+          });
+          if (!res.ok) throw new Error(`score request failed: ${res.status}`);
+          const data = await res.json();
+          
+          // Only apply if this hexagon is still the active one.
+          if (activeHexagon && activeHexagon.id === hexData.id) {
+            hexData.score = data;
+            hexData.envScore = Math.round(data.site_score);
+            updateHexagonInfo(hexData);
+          }
+        } catch (err) {
+          console.warn('Backend score unavailable, using placeholder:', err);
+          // Keep the placeholder envScore; panel already rendered.
+        }
       }
       
       /**
@@ -1271,6 +1305,21 @@
               <div class="env-score-bar">
                 <div class="env-score-fill" style="width: ${hexData.envScore}%"></div>
               </div>
+              ${hexData.score ? `
+              <div class="stat-row" style="margin-top: 0.75rem;">
+                <span class="stat-label">Grade</span>
+                <span class="stat-value"><strong>${hexData.score.grade}</strong> &mdash; ${hexData.score.grade_label}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Confidence</span>
+                <span class="stat-value">${hexData.score.data_confidence}/100 (&plusmn;${hexData.score.confidence_band})</span>
+              </div>
+              ` : `
+              <div class="stat-row" style="margin-top: 0.5rem;">
+                <span class="stat-label" style="font-style: italic; opacity: 0.7;">Scoring…</span>
+                <span class="stat-value"></span>
+              </div>
+              `}
             </div>
             <button class="btn-save" onclick="saveCurrentLocation()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1433,6 +1482,7 @@
           area: activeHexagon.area,
           perimeter: activeHexagon.perimeter,
           envScore: activeHexagon.envScore,
+          score: activeHexagon.score, // full backend score payload (may be null)
           timestamp: new Date().toISOString(),
           marker: null // Will hold the Leaflet marker
         };
@@ -1655,15 +1705,229 @@
       // ═══════════════════════════════════════════════════════════════
       
       /**
-       * Generate and download PDF report for selected hexagon
+       * Render a subset of Markdown (as produced by the backend report)
+       * into a jsPDF document: H1/H2/H3 headings, paragraphs with **bold**,
+       * bullet lists, and pipe tables. Handles page breaks automatically.
+       */
+      function renderMarkdownToPDF(doc, markdown, opts) {
+        const { margin, pageWidth, pageHeight, contentWidth, startY } = opts;
+        let y = startY;
+        const bottom = pageHeight - 20; // leave room for the footer
+        
+        const COLORS = {
+          h1: [46, 74, 59],    // deep forest sage
+          h2: [36, 42, 38],    // espresso charcoal
+          h3: [122, 154, 128], // soft moss
+          body: [36, 42, 38],
+          muted: [122, 154, 128],
+          rule: [228, 221, 208],
+          cardBg: [250, 248, 245],
+          accent: [200, 122, 83]
+        };
+        
+        function ensureSpace(h) {
+          if (y + h > bottom) {
+            doc.addPage();
+            y = margin;
+          }
+        }
+        
+        // Strip simple inline markdown (** and backticks) for plain rendering.
+        function clean(text) {
+          return text
+            .replace(/\*\*(.+?)\*\*/g, '$1')
+            .replace(/`(.+?)`/g, '$1')
+            .replace(/&mdash;/g, '—')
+            .replace(/&plusmn;/g, '±')
+            .replace(/&amp;/g, '&')
+            .trim();
+        }
+        
+        // Draw a paragraph, wrapping to contentWidth, honouring **bold** at
+        // the whole-line level (good enough for the report's usage).
+        function paragraph(text, { size = 10, color = COLORS.body, font = 'helvetica', style = 'normal', gap = 2 } = {}) {
+          const bold = /^\*\*.*\*\*$/.test(text.trim());
+          const effStyle = bold ? 'bold' : style;
+          doc.setFont(font, effStyle);
+          doc.setFontSize(size);
+          doc.setTextColor(...color);
+          const lines = doc.splitTextToSize(clean(text), contentWidth);
+          const lineH = size * 0.4 + 1.5;
+          lines.forEach(line => {
+            ensureSpace(lineH);
+            doc.text(line, margin, y);
+            y += lineH;
+          });
+          y += gap;
+        }
+        
+        function heading(text, level) {
+          const spec = {
+            1: { size: 20, color: COLORS.h1, font: 'times', pre: 4, post: 4 },
+            2: { size: 14, color: COLORS.h2, font: 'times', pre: 5, post: 2.5 },
+            3: { size: 11.5, color: COLORS.h3, font: 'times', pre: 3.5, post: 2 }
+          }[level];
+          y += spec.pre;
+          ensureSpace(spec.size * 0.5 + 4);
+          doc.setFont(spec.font, 'bold');
+          doc.setFontSize(spec.size);
+          doc.setTextColor(...spec.color);
+          const lines = doc.splitTextToSize(clean(text), contentWidth);
+          lines.forEach(line => {
+            ensureSpace(spec.size * 0.5);
+            doc.text(line, margin, y);
+            y += spec.size * 0.5;
+          });
+          if (level === 1) {
+            doc.setDrawColor(...COLORS.accent);
+            doc.setLineWidth(0.5);
+            ensureSpace(3);
+            doc.line(margin, y, pageWidth - margin, y);
+          }
+          y += spec.post;
+        }
+        
+        function bullet(text) {
+          const lineH = 5;
+          const lines = doc.splitTextToSize(clean(text), contentWidth - 6);
+          ensureSpace(lines.length * lineH);
+          doc.setFillColor(...COLORS.accent);
+          doc.circle(margin + 1.5, y - 1.2, 1, 'F');
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(...COLORS.body);
+          lines.forEach((line, i) => {
+            ensureSpace(lineH);
+            doc.text(line, margin + 6, y);
+            y += lineH;
+          });
+          y += 1;
+        }
+        
+        function table(rows) {
+          // rows: array of arrays of cell strings. First row is the header.
+          const cols = rows[0].length;
+          const colW = contentWidth / cols;
+          const rowH = 7;
+          rows.forEach((cells, rIdx) => {
+            ensureSpace(rowH);
+            if (rIdx === 0) {
+              doc.setFillColor(...COLORS.h3);
+              doc.rect(margin, y - 4.5, contentWidth, rowH, 'F');
+              doc.setFont('helvetica', 'bold');
+              doc.setTextColor(255, 255, 255);
+            } else {
+              if (rIdx % 2 === 0) {
+                doc.setFillColor(...COLORS.cardBg);
+                doc.rect(margin, y - 4.5, contentWidth, rowH, 'F');
+              }
+              doc.setFont('helvetica', 'normal');
+              doc.setTextColor(...COLORS.body);
+            }
+            doc.setFontSize(8.5);
+            cells.forEach((cell, cIdx) => {
+              const txt = doc.splitTextToSize(clean(cell), colW - 3)[0] || '';
+              doc.text(txt, margin + cIdx * colW + 2, y);
+            });
+            y += rowH;
+          });
+          y += 3;
+        }
+        
+        // --- parse the markdown line by line -----------------------------
+        const rawLines = markdown.split('\n');
+        let i = 0;
+        while (i < rawLines.length) {
+          let line = rawLines[i];
+          const trimmed = line.trim();
+          
+          if (trimmed === '' || trimmed === '---') {
+            i++;
+            continue;
+          }
+          
+          // Table block: a line starting with | ... collect consecutive rows.
+          if (trimmed.startsWith('|')) {
+            const block = [];
+            while (i < rawLines.length && rawLines[i].trim().startsWith('|')) {
+              block.push(rawLines[i].trim());
+              i++;
+            }
+            // Parse rows, skipping the |---|---| separator row.
+            const parsed = block
+              .filter(r => !/^\|[\s:|-]+\|?$/.test(r))
+              .map(r => r.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
+            if (parsed.length) table(parsed);
+            continue;
+          }
+          
+          if (trimmed.startsWith('### ')) { heading(trimmed.slice(4), 3); i++; continue; }
+          if (trimmed.startsWith('## '))  { heading(trimmed.slice(3), 2); i++; continue; }
+          if (trimmed.startsWith('# '))   { heading(trimmed.slice(2), 1); i++; continue; }
+          
+          if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+            bullet(trimmed.slice(2));
+            i++;
+            continue;
+          }
+          
+          if (trimmed.startsWith('> ')) {
+            paragraph(trimmed.slice(2), { color: COLORS.accent, style: 'bold', size: 10 });
+            i++;
+            continue;
+          }
+          
+          // Italic-only interpretation lines (*...*) -> muted.
+          if (/^\*[^*].*\*$/.test(trimmed)) {
+            paragraph(trimmed.replace(/^\*|\*$/g, ''), { color: COLORS.muted, size: 9.5 });
+            i++;
+            continue;
+          }
+          
+          paragraph(trimmed);
+          i++;
+        }
+      }
+      
+      /**
+       * Generate and download a scientific PDF report for a location,
+       * using the real report from the backend.
        */
       async function exportPDF(hexId) {
         const { jsPDF } = window.jspdf;
         
-        // Find the hexagon data
-        const hexData = activeHexagon;
+        // Resolve which location to export. If a hexId was passed (e.g. from a
+        // saved-location card), prefer that; otherwise use the active hexagon.
+        let hexData = activeHexagon;
+        if (hexId) {
+          if (activeHexagon && activeHexagon.id === hexId) {
+            hexData = activeHexagon;
+          } else {
+            const saved = savedLocations.find(l => l.hexagonId === hexId);
+            if (saved) hexData = saved;
+          }
+        }
         if (!hexData) {
-          alert('No hexagon selected for export');
+          alert('No location selected for export');
+          return;
+        }
+        
+        // Fetch the real scientific report from the backend for this location.
+        const [lat, lon] = hexData.centroid;
+        showToast('Generating report…');
+        let reportMarkdown = null;
+        try {
+          const res = await fetch(`${CONFIG.apiBase}/api/report`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat, lon })
+          });
+          if (!res.ok) throw new Error(`report request failed: ${res.status}`);
+          reportMarkdown = (await res.json()).markdown;
+        } catch (err) {
+          console.error('Report fetch failed:', err);
+          alert('Could not reach the backend to generate the report. ' +
+                'Make sure the API is running on ' + CONFIG.apiBase + '.');
           return;
         }
         
@@ -1706,206 +1970,46 @@
         yPosition += 15;
         
         // ═══════════════════════════════════════════════════════════
-        // HEXAGON IDENTIFICATION
+        // SITE IDENTIFICATION
         // ═══════════════════════════════════════════════════════════
         
-        // Hexagon ID box
         doc.setFillColor(250, 248, 245); // Card White
         doc.setDrawColor(228, 221, 208); // Border Warm
-        doc.roundedRect(margin, yPosition, contentWidth, 20, 3, 3, 'FD');
-        
-        doc.setFont('times', 'bold');
-        doc.setFontSize(18);
-        doc.setTextColor(36, 42, 38); // Espresso Charcoal
-        doc.text(hexData.id, margin + 8, yPosition + 10);
-        
-        // Status badge
-        doc.setFillColor(122, 154, 128);
-        doc.roundedRect(pageWidth - margin - 35, yPosition + 5, 27, 10, 2, 2, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.setTextColor(255, 255, 255);
-        doc.text('ACTIVE', pageWidth - margin - 21.5, yPosition + 11.5);
-        
-        yPosition += 30;
-        
-        // ═══════════════════════════════════════════════════════════
-        // SPATIAL METRICS
-        // ═══════════════════════════════════════════════════════════
-        
+        doc.roundedRect(margin, yPosition, contentWidth, 16, 3, 3, 'FD');
         doc.setFont('times', 'bold');
         doc.setFontSize(14);
         doc.setTextColor(36, 42, 38);
-        doc.text('Spatial Metrics', margin, yPosition);
-        yPosition += 8;
+        doc.text(hexData.id, margin + 8, yPosition + 7);
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(122, 154, 128);
+        doc.text(`${lat.toFixed(5)}, ${lon.toFixed(5)}`, margin + 8, yPosition + 12.5);
+        yPosition += 24;
         
-        // Metrics grid
-        const metrics = [
-          { label: 'Centroid Coordinates', value: `${hexData.centroid[0].toFixed(5)}, ${hexData.centroid[1].toFixed(5)}` },
-          { label: 'Surface Area', value: `${hexData.area.toFixed(3)} km²` },
-          { label: 'Perimeter', value: `${hexData.perimeter.toFixed(2)} km` },
-          { label: 'Created', value: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }
-        ];
+        // ═══════════════════════════════════════════════════════════
+        // RENDER THE SCIENTIFIC REPORT (Markdown -> PDF)
+        // ═══════════════════════════════════════════════════════════
         
-        metrics.forEach((metric, i) => {
-          const rowY = yPosition + (i * 12);
-          
-          doc.setFillColor(250, 248, 245);
-          doc.setDrawColor(228, 221, 208);
-          doc.roundedRect(margin, rowY, contentWidth, 10, 2, 2, 'FD');
-          
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10);
-          doc.setTextColor(122, 154, 128);
-          doc.text(metric.label, margin + 5, rowY + 6.5);
-          
-          doc.setFont('courier', 'normal');
-          doc.setTextColor(36, 42, 38);
-          doc.text(metric.value, pageWidth - margin - 5, rowY + 6.5, { align: 'right' });
+        renderMarkdownToPDF(doc, reportMarkdown, {
+          margin, pageWidth, pageHeight, contentWidth, startY: yPosition
         });
         
-        yPosition += (metrics.length * 12) + 15;
-        
         // ═══════════════════════════════════════════════════════════
-        // ENVIRONMENTAL IMPACT SCORE
+        // FOOTER (on every page)
         // ═══════════════════════════════════════════════════════════
         
-        doc.setFont('times', 'bold');
-        doc.setFontSize(14);
-        doc.setTextColor(36, 42, 38);
-        doc.text('Environmental Impact Score', margin, yPosition);
-        yPosition += 10;
-        
-        // Score label
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(122, 154, 128);
-        doc.text('Composite Risk Assessment', margin, yPosition);
-        
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(36, 42, 38);
-        doc.text(`${hexData.envScore}/100`, pageWidth - margin - 35, yPosition);
-        yPosition += 8;
-        
-        // Progress bar background
-        doc.setFillColor(228, 221, 208);
-        doc.roundedRect(margin, yPosition, contentWidth, 6, 3, 3, 'F');
-        
-        // Progress bar fill
-        const barWidth = (hexData.envScore / 100) * contentWidth;
-        const gradient = hexData.envScore > 75 ? [46, 74, 59] : [200, 122, 83];
-        doc.setFillColor(...gradient);
-        doc.roundedRect(margin, yPosition, barWidth, 6, 3, 3, 'F');
-        
-        yPosition += 20;
-        
-        // ═══════════════════════════════════════════════════════════
-        // KEYSTONE SPECIES BREAKDOWN
-        // ═══════════════════════════════════════════════════════════
-        
-        doc.setFont('times', 'bold');
-        doc.setFontSize(14);
-        doc.setTextColor(36, 42, 38);
-        doc.text('Keystone Species Breakdown', margin, yPosition);
-        yPosition += 10;
-        
-        const species = [
-          { name: 'Haliaeetus leucocephalus', common: 'Bald Eagle', status: 'Protected', count: Math.floor(Math.random() * 5) + 1 },
-          { name: 'Lynx rufus', common: 'Bobcat', status: 'Monitored', count: Math.floor(Math.random() * 8) + 2 },
-          { name: 'Ursus americanus', common: 'Black Bear', status: 'Stable', count: Math.floor(Math.random() * 3) }
-        ];
-        
-        species.forEach((s, i) => {
-          const rowY = yPosition + (i * 14);
-          
-          doc.setFillColor(250, 248, 245);
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let p = 1; p <= pageCount; p++) {
+          doc.setPage(p);
           doc.setDrawColor(228, 221, 208);
-          doc.roundedRect(margin, rowY, contentWidth, 12, 2, 2, 'FD');
-          
-          // Species name
-          doc.setFont('times', 'italic');
-          doc.setFontSize(9);
-          doc.setTextColor(36, 42, 38);
-          doc.text(s.name, margin + 5, rowY + 5);
-          
-          // Common name
+          doc.setLineWidth(0.3);
+          doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(8);
           doc.setTextColor(122, 154, 128);
-          doc.text(s.common, margin + 5, rowY + 10);
-          
-          // Status badge
-          const statusColor = s.status === 'Protected' ? [200, 122, 83] : [122, 154, 128];
-          doc.setFillColor(...statusColor);
-          const statusWidth = doc.getTextWidth(s.status) + 8;
-          doc.roundedRect(pageWidth - margin - statusWidth - 30, rowY + 2, statusWidth, 8, 2, 2, 'F');
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(7);
-          doc.setTextColor(255, 255, 255);
-          doc.text(s.status, pageWidth - margin - 30 - statusWidth / 2 - 4, rowY + 7.5, { align: 'center' });
-          
-          // Count
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(10);
-          doc.setTextColor(36, 42, 38);
-          doc.text(`${s.count}`, pageWidth - margin - 10, rowY + 8, { align: 'right' });
-        });
-        
-        yPosition += (species.length * 14) + 15;
-        
-        // Check if we need a new page for mitigation section
-        if (yPosition > pageHeight - 80) {
-          doc.addPage();
-          yPosition = margin;
+          doc.text(`Generated: ${new Date().toLocaleString('en-US')}`, margin, pageHeight - 9);
+          doc.text(`Page ${p} of ${pageCount}`, pageWidth - margin, pageHeight - 9, { align: 'right' });
         }
-        
-        // ═══════════════════════════════════════════════════════════
-        // MITIGATION RECOMMENDATIONS
-        // ═══════════════════════════════════════════════════════════
-        
-        doc.setFont('times', 'bold');
-        doc.setFontSize(14);
-        doc.setTextColor(36, 42, 38);
-        doc.text('Mitigation Recommendations', margin, yPosition);
-        yPosition += 10;
-        
-        const tips = [
-          'Establish 100m buffer zones around identified nesting sites',
-          'Schedule construction activities outside breeding season (Mar–Aug)',
-          'Implement acoustic monitoring for species detection',
-          'Maintain vegetative corridors for wildlife movement'
-        ];
-        
-        tips.forEach((tip, i) => {
-          const rowY = yPosition + (i * 10);
-          
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(9);
-          doc.setTextColor(36, 42, 38);
-          
-          // Bullet point
-          doc.setFillColor(200, 122, 83);
-          doc.circle(margin + 3, rowY + 3, 1.5, 'F');
-          
-          doc.text(tip, margin + 8, rowY + 4);
-        });
-        
-        yPosition += (tips.length * 10) + 20;
-        
-        // ═══════════════════════════════════════════════════════════
-        // FOOTER
-        // ═══════════════════════════════════════════════════════════
-        
-        doc.setDrawColor(228, 221, 208);
-        doc.setLineWidth(0.3);
-        doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25);
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(122, 154, 128);
-        doc.text(`Generated: ${new Date().toLocaleString('en-US')}`, margin, pageHeight - 18);
-        doc.text('HopsSighting Climate Tech GIS Platform', pageWidth - margin, pageHeight - 18, { align: 'right' });
-        doc.text(`Document ID: ${hexData.id}-RPT-${Date.now()}`, margin, pageHeight - 12);
         
         // ═══════════════════════════════════════════════════════════
         // SAVE PDF
