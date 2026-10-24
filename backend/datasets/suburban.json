@@ -1,0 +1,43 @@
+{
+  "lat": 42.31,
+  "lon": -71.42,
+  "schema_version": "1.0",
+  "label": "Suburban edge (MetroWest MA)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "NHD", "MBTA", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.04,
+  "frac_priority_habitat": 0.05,
+  "frac_forest": 0.3,
+  "frac_vernal_pool": 0.0,
+  "frac_grassland": 0.18,
+  "natural_frac_context": 0.45,
+  "canopy_area_m2": 9000,
+  "transit_distance_m": 1200,
+  "frac_impervious": 0.22,
+  "frac_developed": 0.38,
+  "frac_agriculture": 0.1,
+  "is_brownfield": false,
+  "mature_canopy_frac": 0.2,
+  "frac_open_land": 0.3,
+  "stream_distance_m": 350,
+  "water_distance_m": 350,
+  "mean_slope_deg": 8,
+  "forest_patch_area_m2": 200000,
+  "species": [
+    {"name": "beaver", "sightings_count": 1},
+    {"name": "bats", "sightings_count": 1},
+    {"name": "pollinators", "sightings_count": 9}
+  ],
+  "triggers": {"fema_flood_zone": true},
+  "hard_triggers": {},
+  "n_all_records": 95,
+  "nlcd_confidence": 0.9,
+  "mean_location_uncertainty_m": 140,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

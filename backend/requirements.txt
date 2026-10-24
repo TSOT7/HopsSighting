@@ -1,2 +1,8 @@
 fastapi>=0.115
 uvicorn[standard]>=0.30
+
+# Part 1 (fetcher) live API calls
+requests>=2.31
+
+# Dev / test
+pytest>=8.0
