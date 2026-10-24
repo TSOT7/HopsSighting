@@ -1,6 +1,48 @@
 # HopsSighting
 
-A map-based app for logging and scoring hops sightings. 
+An environmental site-screening tool for land development in Massachusetts.
+
+Pick a location on an interactive map and HopsSighting scores how ecologically sensitive the site is to develop — on a 0–100 scale with an A–F grade — by combining habitat loss, keystone-species risk, habitat connectivity, carbon and climate, land reuse, and regulatory constraints. Every score comes with a plain-language breakdown, a species-risk table, mitigation suggestions, and a downloadable PDF report.
+
+Built for the **Hackachusetts hackathon** — Climate Tech & Clean Energy track.
+
+## What it does
+
+- **Interactive map (Leaflet):** a hex-grid over Massachusetts; click a cell to screen that location.
+- **Real scoring engine (Python, stdlib-only):** six sub-scores combined into an overall environmental rating, gated by hard regulatory triggers and shrunk toward a conservative prior when data confidence is low.
+- **Keystone-species modules:** beaver, bats, and native pollinators, each with a habitat-based risk and a confidence level.
+- **Downloadable report:** a detailed, PDF-ready report explaining how the rating was computed, generated client-side from the backend's response.
+
+> **Note on data:** the demo scores each clicked location against the nearest of 14 prefilled Massachusetts city datasets. Scoring weights and thresholds are provisional placeholders pending calibration — the relative ordering of sites is sensible, absolute grades are not yet production-trustworthy. This is a screening tool, not a substitute for a permit review or a qualified ecologist.
+
+## Tech Stack
+
+### Frontend
+| Layer | Technology |
+|---|---|
+| Map engine | [Leaflet](https://leafletjs.com/) 1.9.4 |
+| Basemap | Esri World Topo (free, no key) |
+| Land cover overlay | MassGIS Land Use 2016 WMS |
+| State boundary | PublicaMundi US States GeoJSON |
+| Geospatial math | [Turf.js](https://turfjs.org/) 6 |
+| PDF export | [jsPDF](https://github.com/parallax/jsPDF) 2.5 |
+| Fonts | Inter + Playfair Display (Google Fonts) |
+| Runtime | Plain HTML/CSS/JS — no build step, no framework |
+| Static server | Python stdlib `http.server` via `serve.py` |
+
+### Backend
+| Layer | Technology |
+|---|---|
+| API framework | [FastAPI](https://fastapi.tiangolo.com/) |
+| Server | [Uvicorn](https://www.uvicorn.org/) (ASGI) |
+| Data validation | [Pydantic](https://docs.pydantic.dev/) v2 |
+| Geospatial data | MassGIS datasets (forested, suburban, developed JSON) |
+| Runtime | Python 3.11+ |
+
+### Design System
+- Organic-editorial palette: forest sage, soft moss, warm terracotta, espresso charcoal
+- Responsive two-panel layout: full-height map canvas + floating side panel
+- Print-optimised styles for executive PDF reports
 
 ## Structure
 
