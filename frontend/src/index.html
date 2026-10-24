@@ -745,7 +745,7 @@
       
       const CONFIG = {
         defaultCenter: [42.36, -71.05], // Boston area
-        defaultZoom: 9,
+        defaultZoom: 11,
         hexRadius: 0.5, // kilometers
         apiBase: "http://localhost:8080",
         // Massachusetts GeoJSON from US Census TIGER boundaries (public domain)
@@ -827,17 +827,39 @@
           zoomControl: true
         });
         
-        // CartoDB Positron tiles (clean light basemap)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          subdomains: 'abcd',
-          maxZoom: 19
-        }).addTo(map);
+        // Esri World Topo basemap – clean topo/street hybrid, no API key required
+        L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+          {
+            attribution:
+              'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; ' +
+              'Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
+            maxZoom: 19
+          }
+        ).addTo(map);
+
+        // MassGIS Land Use / Land Cover WMS overlay (forested areas = bright green)
+        // Published by MassGIS – free, no key required
+        L.tileLayer.wms(
+          'https://giswebservices.massgis.state.ma.us/geoserver/wms',
+          {
+            layers: 'massgis:GISDATA.LANDUSE2016_POLY',
+            format: 'image/png',
+            transparent: true,
+            opacity: 0.55,
+            attribution:
+              '&copy; <a href="https://www.mass.gov/massgis">MassGIS</a>',
+            maxZoom: 19
+          }
+        ).addTo(map);
         
         map.on('click', onMapClick);
 
         // Load Massachusetts state boundary overlay
         loadMassachusettsBoundary();
+
+        // Add Massachusetts city markers with hover tooltips
+        loadMACityMarkers();
       }
 
       // ═══════════════════════════════════════════════════════════════
