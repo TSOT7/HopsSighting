@@ -879,6 +879,51 @@
           font-size: 0.75rem;
         }
       }
+      /* ═══════════════════════════════════════════════════════════════
+         CITY LABELS & TOOLTIPS
+         ═══════════════════════════════════════════════════════════════ */
+
+      .city-label {
+        font-family: var(--font-sans);
+        font-size: 0.6875rem;
+        font-weight: 500;
+        color: var(--espresso-charcoal);
+        white-space: nowrap;
+        text-shadow: 0 1px 3px rgba(244,241,234,0.9), 0 0 6px rgba(244,241,234,0.8);
+        pointer-events: none;
+        letter-spacing: 0.01em;
+      }
+
+      .city-label--major {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--deep-forest-sage);
+      }
+
+      .city-label--highlight {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: var(--warm-terracotta);
+        text-shadow: 0 1px 4px rgba(244,241,234,1), 0 0 8px rgba(244,241,234,0.9);
+        letter-spacing: 0.03em;
+      }
+
+      .city-tooltip.leaflet-tooltip {
+        background: var(--card-white);
+        border: 1px solid var(--border-warm);
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(36,42,38,0.12);
+        padding: 0.35rem 0.6rem;
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--espresso-charcoal);
+      }
+
+      .city-tooltip.leaflet-tooltip::before {
+        display: none;
+      }
+
     </style>
   </head>
   <body>
@@ -965,8 +1010,8 @@
             </p>
           </div>
           
-          <!-- Selected Hexagon Info -->
-          <h2 class="section-title">Selected Hexagon</h2>
+          <!-- Selected Location Info -->
+          <h2 class="section-title">Selected Location</h2>
           <div id="hexagon-info">
             <div class="empty-state">
               <div class="empty-state-icon">⬡</div>
@@ -1175,6 +1220,78 @@
       }
       
       // ═══════════════════════════════════════════════════════════════
+      // MASSACHUSETTS CITY MARKERS
+      // ═══════════════════════════════════════════════════════════════
+
+      const MA_CITIES = [
+        // Eastern / Greater Boston
+        { name: "Boston",       lat: 42.3601, lon: -71.0589, type: "major" },
+        { name: "Lowell",       lat: 42.6334, lon: -71.3162, type: "major" },
+        { name: "Salem",        lat: 42.5195, lon: -70.8967, type: "city"  },
+        { name: "Concord",      lat: 42.4604, lon: -71.3489, type: "city"  },
+        // South Shore / Cape
+        { name: "Plymouth",     lat: 41.9584, lon: -70.6673, type: "city"  },
+        { name: "Provincetown", lat: 42.0501, lon: -70.1853, type: "city"  },
+        { name: "New Bedford",  lat: 41.6362, lon: -70.9342, type: "major" },
+        // Central MA
+        { name: "Worcester",    lat: 42.2626, lon: -71.8023, type: "major" },
+        { name: "Northampton",  lat: 42.3251, lon: -72.6412, type: "city"  },
+        // Western MA
+        { name: "Springfield",  lat: 42.1015, lon: -72.5898, type: "major" },
+        { name: "Pittsfield",   lat: 42.4501, lon: -73.2454, type: "city"  },
+        { name: "Greenfield",   lat: 42.5876, lon: -72.5993, type: "city"  },
+        // North Shore / Merrimack Valley
+        { name: "Gloucester",   lat: 42.6159, lon: -70.6620, type: "city"  },
+        { name: "Lawrence",     lat: 42.7070, lon: -71.1631, type: "city"  },
+      ];
+
+      /**
+       * Find the nearest city to a [lat, lng] point
+       */
+      function getNearestCity(lat, lng) {
+        let nearest = null;
+        let minDist = Infinity;
+        MA_CITIES.forEach(city => {
+          const d = Math.sqrt(
+            Math.pow(city.lat - lat, 2) + Math.pow(city.lon - lng, 2)
+          );
+          if (d < minDist) { minDist = d; nearest = city; }
+        });
+        return nearest;
+      }
+
+      function loadMACityMarkers() {
+        MA_CITIES.forEach(city => {
+          const isHighlight = city.type === "highlight";
+          const isMajor     = city.type === "major";
+
+          const radius      = isHighlight ? 5 : isMajor ? 4 : 3;
+          const fillColor   = isHighlight ? "#C87A53" : isMajor ? "#2E4A3B" : "#7A9A80";
+          const strokeColor = isHighlight ? "#8B4A2A" : "#2E4A3B";
+          const strokeWidth = isHighlight ? 2.5 : 1.5;
+
+          const dot = L.circleMarker([city.lat, city.lon], {
+            radius, fillColor, color: strokeColor,
+            weight: strokeWidth, fillOpacity: 0.92, opacity: 1,
+            pane: "markerPane"
+          }).addTo(map);
+
+          // Persistent text label floating next to dot
+          const labelIcon = L.divIcon({
+            className: "",
+            html: `<span class="city-label ${isHighlight ? "city-label--highlight" : isMajor ? "city-label--major" : ""}">${city.name}</span>`,
+            iconAnchor: [-10, 6]
+          });
+          L.marker([city.lat, city.lon], { icon: labelIcon, interactive: false }).addTo(map);
+
+          // Hover tooltip — just the city name
+          dot.bindTooltip(`<strong>${city.name}</strong>`, {
+            sticky: true, opacity: 0.97, className: "city-tooltip"
+          });
+        });
+      }
+
+      // ═══════════════════════════════════════════════════════════════
       // HEXAGON DRAWING & INTERACTION
       // ═══════════════════════════════════════════════════════════════
       
@@ -1193,7 +1310,8 @@
         // Clear saved location selection when exploring new area
         clearSavedLocationSelection();
         
-        const hexId = generateHexagonId();
+        const nearestCity = getNearestCity(center[0], center[1]);
+        const hexId = nearestCity ? nearestCity.name : generateHexagonId();
         const turfHex = createHexagonWithTurf(center, CONFIG.hexRadius);
         const leafletCoords = turfToLeaflet(turfHex);
         const metrics = calculateHexagonMetrics(turfHex);
