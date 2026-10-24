@@ -1,0 +1,43 @@
+{
+  "lat": 42.5876,
+  "lon": -72.5993,
+  "schema_version": "1.0",
+  "label": "Greenfield (rural forest and farmland)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "NHD", "NHESP", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.08,
+  "frac_priority_habitat": 0.2,
+  "frac_forest": 0.5,
+  "frac_vernal_pool": 0.04,
+  "frac_grassland": 0.12,
+  "natural_frac_context": 0.62,
+  "canopy_area_m2": 16000,
+  "transit_distance_m": 3800,
+  "frac_impervious": 0.15,
+  "frac_developed": 0.22,
+  "frac_agriculture": 0.25,
+  "is_brownfield": false,
+  "mature_canopy_frac": 0.35,
+  "frac_open_land": 0.22,
+  "stream_distance_m": 100,
+  "water_distance_m": 90,
+  "mean_slope_deg": 7,
+  "forest_patch_area_m2": 650000,
+  "species": [
+    {"name": "beaver", "sightings_count": 4},
+    {"name": "bats", "sightings_count": 3},
+    {"name": "pollinators", "sightings_count": 9}
+  ],
+  "triggers": {"wetland_or_buffer": true},
+  "hard_triggers": {},
+  "n_all_records": 90,
+  "nlcd_confidence": 0.88,
+  "mean_location_uncertainty_m": 180,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

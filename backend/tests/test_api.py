@@ -57,6 +57,34 @@ class TestReportEndpoint:
         assert "42.25" in md or "42.2500" in md
 
 
+class TestCityResolution:
+    def test_each_city_resolves_to_its_dataset(self):
+        from app.main import CITY_DATASETS
+        seen = set()
+        for city in CITY_DATASETS:
+            body = client.post(
+                "/api/score", json={"lat": city["lat"], "lon": city["lon"]}
+            ).json()
+            seen.add(body["label"])
+        # Every city produced a distinct dataset label.
+        assert len(seen) == len(CITY_DATASETS)
+
+    def test_boston_is_low_impact_concord_is_high(self):
+        boston = client.post("/api/score", json={"lat": 42.3601, "lon": -71.0589}).json()
+        concord = client.post("/api/score", json={"lat": 42.4604, "lon": -71.3489}).json()
+        # Developed Boston should rate better (higher) than wooded Concord.
+        assert boston["e_final"] > concord["e_final"]
+
+    def test_provincetown_hard_gate_flag(self):
+        pt = client.post("/api/score", json={"lat": 42.0501, "lon": -70.1853}).json()
+        assert "regulatory review likely" in pt["flags"]
+
+    def test_off_marker_click_snaps_to_nearest(self):
+        # A click near Boston (not exactly on it) still resolves to Boston.
+        body = client.post("/api/score", json={"lat": 42.35, "lon": -71.07}).json()
+        assert "Boston" in body["label"]
+
+
 class TestCORS:
     def test_cors_allows_frontend_origin(self):
         r = client.options(

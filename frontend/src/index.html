@@ -1350,6 +1350,37 @@
         fetchScoreForHexagon(activeHexagon);
       }
       
+      // Friendly names for the six environmental sub-scores.
+      const SUBSCORE_LABELS = {
+        S_H: 'Habitat integrity',
+        S_K: 'Keystone species',
+        S_C: 'Connectivity',
+        S_Cb: 'Carbon & climate',
+        S_L: 'Land reuse',
+        S_G: 'Regulatory'
+      };
+      
+      /**
+       * Render the six sub-scores as small labelled bars (0-100, higher = better).
+       */
+      function renderSubscoreBars(subscores) {
+        if (!subscores) return '';
+        return Object.keys(SUBSCORE_LABELS).map(key => {
+          const val = subscores[key];
+          if (val === undefined) return '';
+          const pct = Math.max(0, Math.min(100, val));
+          const color = pct >= 70 ? '#2E4A3B' : pct >= 40 ? '#C87A53' : '#B4472E';
+          return `
+            <div class="subscore-row" style="display:flex;align-items:center;gap:0.5rem;margin:0.2rem 0;">
+              <span style="flex:0 0 7.5rem;font-size:0.72rem;color:var(--soft-moss);">${SUBSCORE_LABELS[key]}</span>
+              <span style="flex:1;height:6px;background:#E4DDD0;border-radius:3px;overflow:hidden;">
+                <span style="display:block;height:100%;width:${pct}%;background:${color};border-radius:3px;"></span>
+              </span>
+              <span style="flex:0 0 2rem;text-align:right;font-size:0.72rem;color:var(--espresso-charcoal);font-weight:600;">${Math.round(val)}</span>
+            </div>`;
+        }).join('');
+      }
+      
       /**
        * Call the backend /api/score for a hexagon's centroid and update
        * the panel with the real rating. Falls back silently to the
@@ -1425,6 +1456,10 @@
               </div>
               ${hexData.score ? `
               <div class="stat-row" style="margin-top: 0.75rem;">
+                <span class="stat-label">Site</span>
+                <span class="stat-value">${hexData.score.label}</span>
+              </div>
+              <div class="stat-row">
                 <span class="stat-label">Grade</span>
                 <span class="stat-value"><strong>${hexData.score.grade}</strong> &mdash; ${hexData.score.grade_label}</span>
               </div>
@@ -1432,6 +1467,19 @@
                 <span class="stat-label">Confidence</span>
                 <span class="stat-value">${hexData.score.data_confidence}/100 (&plusmn;${hexData.score.confidence_band})</span>
               </div>
+              <div class="stat-row">
+                <span class="stat-label">Coverage</span>
+                <span class="stat-value">${hexData.score.coverage}</span>
+              </div>
+              <div class="subscore-breakdown" style="margin-top: 0.75rem;">
+                <div class="stat-label" style="margin-bottom: 0.4rem;">Factor breakdown</div>
+                ${renderSubscoreBars(hexData.score.subscores)}
+              </div>
+              ${hexData.score.flags && hexData.score.flags.length ? `
+              <div class="stat-row" style="margin-top: 0.5rem;">
+                <span class="stat-label" style="color: var(--warm-terracotta);">⚑ Flag</span>
+                <span class="stat-value" style="color: var(--warm-terracotta);">${hexData.score.flags.join('; ')}</span>
+              </div>` : ``}
               ` : `
               <div class="stat-row" style="margin-top: 0.5rem;">
                 <span class="stat-label" style="font-style: italic; opacity: 0.7;">Scoring…</span>
@@ -1685,6 +1733,29 @@
               <div class="env-score-bar">
                 <div class="env-score-fill" style="width: ${location.envScore}%"></div>
               </div>
+              ${location.score ? `
+              <div class="stat-row" style="margin-top: 0.75rem;">
+                <span class="stat-label">Site</span>
+                <span class="stat-value">${location.score.label}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Grade</span>
+                <span class="stat-value"><strong>${location.score.grade}</strong> &mdash; ${location.score.grade_label}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Confidence</span>
+                <span class="stat-value">${location.score.data_confidence}/100 (&plusmn;${location.score.confidence_band})</span>
+              </div>
+              <div class="subscore-breakdown" style="margin-top: 0.75rem;">
+                <div class="stat-label" style="margin-bottom: 0.4rem;">Factor breakdown</div>
+                ${renderSubscoreBars(location.score.subscores)}
+              </div>
+              ${location.score.flags && location.score.flags.length ? `
+              <div class="stat-row" style="margin-top: 0.5rem;">
+                <span class="stat-label" style="color: var(--warm-terracotta);">⚑ Flag</span>
+                <span class="stat-value" style="color: var(--warm-terracotta);">${location.score.flags.join('; ')}</span>
+              </div>` : ``}
+              ` : ``}
             </div>
             <div class="btn-group">
               <button class="btn btn-danger" onclick="deleteSavedLocation('${location.id}')">Delete Location</button>
@@ -1832,15 +1903,16 @@
         let y = startY;
         const bottom = pageHeight - 20; // leave room for the footer
         
+        // Brand palette (matches the on-screen template).
         const COLORS = {
-          h1: [46, 74, 59],    // deep forest sage
-          h2: [36, 42, 38],    // espresso charcoal
-          h3: [122, 154, 128], // soft moss
+          forest: [46, 74, 59],    // deep forest sage
+          charcoal: [36, 42, 38],  // espresso charcoal
+          moss: [122, 154, 128],   // soft moss
           body: [36, 42, 38],
           muted: [122, 154, 128],
-          rule: [228, 221, 208],
-          cardBg: [250, 248, 245],
-          accent: [200, 122, 83]
+          rule: [228, 221, 208],   // border warm
+          cardBg: [250, 248, 245], // card white
+          accent: [200, 122, 83]   // warm terracotta
         };
         
         function ensureSpace(h) {
@@ -1863,58 +1935,81 @@
         
         // Draw a paragraph, wrapping to contentWidth, honouring **bold** at
         // the whole-line level (good enough for the report's usage).
-        function paragraph(text, { size = 10, color = COLORS.body, font = 'helvetica', style = 'normal', gap = 2 } = {}) {
+        function paragraph(text, { size = 10, color = COLORS.body, font = 'helvetica', style = 'normal', gap = 2.5, indent = 0 } = {}) {
           const bold = /^\*\*.*\*\*$/.test(text.trim());
           const effStyle = bold ? 'bold' : style;
           doc.setFont(font, effStyle);
           doc.setFontSize(size);
           doc.setTextColor(...color);
-          const lines = doc.splitTextToSize(clean(text), contentWidth);
-          const lineH = size * 0.4 + 1.5;
+          const lines = doc.splitTextToSize(clean(text), contentWidth - indent);
+          const lineH = size * 0.42 + 1.6;
           lines.forEach(line => {
             ensureSpace(lineH);
-            doc.text(line, margin, y);
+            doc.text(line, margin + indent, y);
             y += lineH;
           });
           y += gap;
         }
         
+        // H1: branded title band (serif, forest, terracotta rule under it).
+        function titleHeading(text) {
+          y += 2;
+          ensureSpace(16);
+          doc.setFont('times', 'bold');
+          doc.setFontSize(20);
+          doc.setTextColor(...COLORS.forest);
+          doc.text(clean(text), margin, y + 6);
+          y += 10;
+          doc.setDrawColor(...COLORS.accent);
+          doc.setLineWidth(0.6);
+          doc.line(margin, y, pageWidth - margin, y);
+          y += 7;
+        }
+        
+        // H2: a section header bar — forest-filled rounded strip, white serif
+        // label — echoing the on-screen card sections.
+        function sectionHeading(text) {
+          y += 4;
+          const barH = 9;
+          ensureSpace(barH + 3);
+          doc.setFillColor(...COLORS.forest);
+          doc.roundedRect(margin, y, contentWidth, barH, 1.8, 1.8, 'F');
+          doc.setFont('times', 'bold');
+          doc.setFontSize(12);
+          doc.setTextColor(255, 255, 255);
+          doc.text(clean(text), margin + 4, y + 6.2);
+          y += barH + 5;
+        }
+        
+        // H3: accent-coloured serif subheading with a short terracotta tick.
+        function subHeading(text) {
+          y += 3;
+          ensureSpace(8);
+          doc.setFillColor(...COLORS.accent);
+          doc.rect(margin, y - 3.2, 1.6, 5, 'F'); // left tick
+          doc.setFont('times', 'bold');
+          doc.setFontSize(11.5);
+          doc.setTextColor(...COLORS.forest);
+          doc.text(clean(text), margin + 4, y + 1);
+          y += 6;
+        }
+        
         function heading(text, level) {
-          const spec = {
-            1: { size: 20, color: COLORS.h1, font: 'times', pre: 4, post: 4 },
-            2: { size: 14, color: COLORS.h2, font: 'times', pre: 5, post: 2.5 },
-            3: { size: 11.5, color: COLORS.h3, font: 'times', pre: 3.5, post: 2 }
-          }[level];
-          y += spec.pre;
-          ensureSpace(spec.size * 0.5 + 4);
-          doc.setFont(spec.font, 'bold');
-          doc.setFontSize(spec.size);
-          doc.setTextColor(...spec.color);
-          const lines = doc.splitTextToSize(clean(text), contentWidth);
-          lines.forEach(line => {
-            ensureSpace(spec.size * 0.5);
-            doc.text(line, margin, y);
-            y += spec.size * 0.5;
-          });
-          if (level === 1) {
-            doc.setDrawColor(...COLORS.accent);
-            doc.setLineWidth(0.5);
-            ensureSpace(3);
-            doc.line(margin, y, pageWidth - margin, y);
-          }
-          y += spec.post;
+          if (level === 1) return titleHeading(text);
+          if (level === 2) return sectionHeading(text);
+          return subHeading(text);
         }
         
         function bullet(text) {
           const lineH = 5;
-          const lines = doc.splitTextToSize(clean(text), contentWidth - 6);
+          const lines = doc.splitTextToSize(clean(text), contentWidth - 7);
           ensureSpace(lines.length * lineH);
           doc.setFillColor(...COLORS.accent);
-          doc.circle(margin + 1.5, y - 1.2, 1, 'F');
+          doc.circle(margin + 1.8, y - 1.2, 1, 'F');
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(10);
           doc.setTextColor(...COLORS.body);
-          lines.forEach((line, i) => {
+          lines.forEach((line) => {
             ensureSpace(lineH);
             doc.text(line, margin + 6, y);
             y += lineH;
@@ -1922,21 +2017,34 @@
           y += 1;
         }
         
+        // Card-framed table: a rounded card with a moss header row, warm
+        // zebra striping, and a surrounding border — matching the template's
+        // metric cards.
         function table(rows) {
-          // rows: array of arrays of cell strings. First row is the header.
           const cols = rows[0].length;
           const colW = contentWidth / cols;
-          const rowH = 7;
+          const rowH = 7.5;
+          const tableH = rows.length * rowH;
+          ensureSpace(tableH + 2);
+          const top = y - 4.5;
+          
+          // Card background + border behind the whole table.
+          doc.setFillColor(...COLORS.cardBg);
+          doc.setDrawColor(...COLORS.rule);
+          doc.setLineWidth(0.3);
+          doc.roundedRect(margin, top, contentWidth, tableH, 2, 2, 'FD');
+          
           rows.forEach((cells, rIdx) => {
-            ensureSpace(rowH);
             if (rIdx === 0) {
-              doc.setFillColor(...COLORS.h3);
-              doc.rect(margin, y - 4.5, contentWidth, rowH, 'F');
+              // Header strip in moss.
+              doc.setFillColor(...COLORS.moss);
+              doc.roundedRect(margin, top, contentWidth, rowH, 2, 2, 'F');
+              doc.rect(margin, top + rowH / 2, contentWidth, rowH / 2, 'F'); // square off bottom
               doc.setFont('helvetica', 'bold');
               doc.setTextColor(255, 255, 255);
             } else {
               if (rIdx % 2 === 0) {
-                doc.setFillColor(...COLORS.cardBg);
+                doc.setFillColor(243, 238, 230); // subtle warm stripe
                 doc.rect(margin, y - 4.5, contentWidth, rowH, 'F');
               }
               doc.setFont('helvetica', 'normal');
@@ -1945,11 +2053,11 @@
             doc.setFontSize(8.5);
             cells.forEach((cell, cIdx) => {
               const txt = doc.splitTextToSize(clean(cell), colW - 3)[0] || '';
-              doc.text(txt, margin + cIdx * colW + 2, y);
+              doc.text(txt, margin + cIdx * colW + 2.5, y);
             });
             y += rowH;
           });
-          y += 3;
+          y += 4;
         }
         
         // --- parse the markdown line by line -----------------------------
@@ -1995,9 +2103,17 @@
             continue;
           }
           
-          // Italic-only interpretation lines (*...*) -> muted.
+          // "*Interpretation:* ..." notes -> muted italic callout, indented.
+          if (/^\*Interpretation:\*/i.test(trimmed)) {
+            const noteText = trimmed.replace(/^\*Interpretation:\*/i, 'Interpretation:').replace(/\*/g, '');
+            paragraph(noteText, { color: COLORS.muted, style: 'italic', size: 9.5, indent: 4 });
+            i++;
+            continue;
+          }
+          
+          // Italic-only lines (*...*) -> muted.
           if (/^\*[^*].*\*$/.test(trimmed)) {
-            paragraph(trimmed.replace(/^\*|\*$/g, ''), { color: COLORS.muted, size: 9.5 });
+            paragraph(trimmed.replace(/^\*|\*$/g, ''), { color: COLORS.muted, style: 'italic', size: 9.5 });
             i++;
             continue;
           }

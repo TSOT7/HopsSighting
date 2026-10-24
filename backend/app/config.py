@@ -50,6 +50,14 @@ PENALTIES = {
 # Option-D group weights (sum to 1)
 GROUP_WEIGHTS = {"eco": 0.50, "climate": 0.30, "site": 0.20}
 
+# Spread / contrast adjustment on the combined score. Raw combined scores
+# cluster near the middle, which bunches every site into C/D. This stretches
+# the score around SPREAD_PIVOT by SPREAD_GAIN so strong sites reach A/B and
+# weak ones fall to clear F's, without changing their relative order.
+# A gain of 1.0 is a no-op; higher = more spread. PLACEHOLDER (demo tuning).
+SPREAD_GAIN = 1.8
+SPREAD_PIVOT = 50.0
+
 # Hard gate
 HARD_GATE_CAP = 40.0              # PLACEHOLDER
 HARD_GATE_FLAG = "regulatory review likely"

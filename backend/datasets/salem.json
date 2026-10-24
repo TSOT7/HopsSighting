@@ -1,0 +1,43 @@
+{
+  "lat": 42.5195,
+  "lon": -70.8967,
+  "schema_version": "1.0",
+  "label": "Salem (coastal historic city)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "NHD", "FEMA", "MBTA", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.09,
+  "frac_priority_habitat": 0.04,
+  "frac_forest": 0.15,
+  "frac_vernal_pool": 0.0,
+  "frac_grassland": 0.06,
+  "natural_frac_context": 0.32,
+  "canopy_area_m2": 5000,
+  "transit_distance_m": 800,
+  "frac_impervious": 0.5,
+  "frac_developed": 0.66,
+  "frac_agriculture": 0.01,
+  "is_brownfield": false,
+  "mature_canopy_frac": 0.12,
+  "frac_open_land": 0.12,
+  "stream_distance_m": 220,
+  "water_distance_m": 150,
+  "mean_slope_deg": 4,
+  "forest_patch_area_m2": 70000,
+  "species": [
+    {"name": "beaver", "sightings_count": 1},
+    {"name": "bats", "sightings_count": 2},
+    {"name": "pollinators", "sightings_count": 7}
+  ],
+  "triggers": {"fema_flood_zone": true, "riverfront_area": true},
+  "hard_triggers": {},
+  "n_all_records": 130,
+  "nlcd_confidence": 0.9,
+  "mean_location_uncertainty_m": 130,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

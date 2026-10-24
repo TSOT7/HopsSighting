@@ -1,0 +1,43 @@
+{
+  "lat": 42.3251,
+  "lon": -72.6412,
+  "schema_version": "1.0",
+  "label": "Northampton (river valley farmland)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "NHD", "NHESP", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.1,
+  "frac_priority_habitat": 0.12,
+  "frac_forest": 0.3,
+  "frac_vernal_pool": 0.03,
+  "frac_grassland": 0.15,
+  "natural_frac_context": 0.5,
+  "canopy_area_m2": 9000,
+  "transit_distance_m": 1800,
+  "frac_impervious": 0.25,
+  "frac_developed": 0.35,
+  "frac_agriculture": 0.3,
+  "is_brownfield": false,
+  "mature_canopy_frac": 0.2,
+  "frac_open_land": 0.28,
+  "stream_distance_m": 150,
+  "water_distance_m": 120,
+  "mean_slope_deg": 4,
+  "forest_patch_area_m2": 300000,
+  "species": [
+    {"name": "beaver", "sightings_count": 3},
+    {"name": "bats", "sightings_count": 2},
+    {"name": "pollinators", "sightings_count": 10}
+  ],
+  "triggers": {"wetland_or_buffer": true, "riverfront_area": true},
+  "hard_triggers": {},
+  "n_all_records": 105,
+  "nlcd_confidence": 0.9,
+  "mean_location_uncertainty_m": 140,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

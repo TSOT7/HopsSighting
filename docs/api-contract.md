@@ -50,8 +50,9 @@ Returns an array of `Sighting` objects.
 ## POST /api/score
 
 Scores a clicked map location. Request: `{ "lat": number, "lon": number }`
-(WGS84). For the demo every location is scored against a single prefilled
-datasheet, with the clicked coordinates stamped onto the result.
+(WGS84). For the demo the click is resolved to the nearest of the MA city
+datasets and scored against it; the clicked coordinates are stamped onto
+the result and `label` names the matched site.
 
 Response (abridged):
 

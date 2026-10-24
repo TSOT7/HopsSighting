@@ -1,0 +1,43 @@
+{
+  "lat": 42.1015,
+  "lon": -72.5898,
+  "schema_version": "1.0",
+  "label": "Springfield (urban river city)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "FEMA", "MBTA", "MassDEP-21E", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.04,
+  "frac_priority_habitat": 0.03,
+  "frac_forest": 0.14,
+  "frac_vernal_pool": 0.0,
+  "frac_grassland": 0.05,
+  "natural_frac_context": 0.22,
+  "canopy_area_m2": 4500,
+  "transit_distance_m": 700,
+  "frac_impervious": 0.6,
+  "frac_developed": 0.75,
+  "frac_agriculture": 0.02,
+  "is_brownfield": true,
+  "mature_canopy_frac": 0.1,
+  "frac_open_land": 0.08,
+  "stream_distance_m": 250,
+  "water_distance_m": 150,
+  "mean_slope_deg": 3,
+  "forest_patch_area_m2": 60000,
+  "species": [
+    {"name": "beaver", "sightings_count": 1},
+    {"name": "bats", "sightings_count": 1},
+    {"name": "pollinators", "sightings_count": 5}
+  ],
+  "triggers": {"fema_flood_zone": true, "riverfront_area": true},
+  "hard_triggers": {},
+  "n_all_records": 118,
+  "nlcd_confidence": 0.92,
+  "mean_location_uncertainty_m": 110,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

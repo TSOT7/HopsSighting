@@ -1,0 +1,43 @@
+{
+  "lat": 41.9584,
+  "lon": -70.6673,
+  "schema_version": "1.0",
+  "label": "Plymouth (coastal pine barrens)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "NHD", "NHESP", "FEMA", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.1,
+  "frac_priority_habitat": 0.3,
+  "frac_forest": 0.55,
+  "frac_vernal_pool": 0.12,
+  "frac_grassland": 0.08,
+  "natural_frac_context": 0.68,
+  "canopy_area_m2": 20000,
+  "transit_distance_m": 4500,
+  "frac_impervious": 0.12,
+  "frac_developed": 0.2,
+  "frac_agriculture": 0.05,
+  "is_brownfield": false,
+  "mature_canopy_frac": 0.4,
+  "frac_open_land": 0.15,
+  "stream_distance_m": 180,
+  "water_distance_m": 120,
+  "mean_slope_deg": 3,
+  "forest_patch_area_m2": 700000,
+  "species": [
+    {"name": "beaver", "sightings_count": 3},
+    {"name": "bats", "sightings_count": 2},
+    {"name": "pollinators", "sightings_count": 9}
+  ],
+  "triggers": {"nhesp_priority_habitat": true, "wetland_or_buffer": true, "fema_flood_zone": true},
+  "hard_triggers": {},
+  "n_all_records": 100,
+  "nlcd_confidence": 0.87,
+  "mean_location_uncertainty_m": 170,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

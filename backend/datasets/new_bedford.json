@@ -1,0 +1,43 @@
+{
+  "lat": 41.6362,
+  "lon": -70.9342,
+  "schema_version": "1.0",
+  "label": "New Bedford (working port city)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "FEMA", "MassDEP-21E", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.05,
+  "frac_priority_habitat": 0.02,
+  "frac_forest": 0.08,
+  "frac_vernal_pool": 0.0,
+  "frac_grassland": 0.04,
+  "natural_frac_context": 0.18,
+  "canopy_area_m2": 2500,
+  "transit_distance_m": 900,
+  "frac_impervious": 0.72,
+  "frac_developed": 0.85,
+  "frac_agriculture": 0.01,
+  "is_brownfield": true,
+  "mature_canopy_frac": 0.05,
+  "frac_open_land": 0.06,
+  "stream_distance_m": 400,
+  "water_distance_m": 120,
+  "mean_slope_deg": 2,
+  "forest_patch_area_m2": 20000,
+  "species": [
+    {"name": "beaver", "sightings_count": 0},
+    {"name": "bats", "sightings_count": 0},
+    {"name": "pollinators", "sightings_count": 4}
+  ],
+  "triggers": {"fema_flood_zone": true, "riverfront_area": true},
+  "hard_triggers": {},
+  "n_all_records": 125,
+  "nlcd_confidence": 0.93,
+  "mean_location_uncertainty_m": 100,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

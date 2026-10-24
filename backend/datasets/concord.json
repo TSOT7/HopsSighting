@@ -1,0 +1,43 @@
+{
+  "lat": 42.4604,
+  "lon": -71.3489,
+  "schema_version": "1.0",
+  "label": "Concord (wooded conservation town)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "NHD", "PAD-US", "NHESP", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.18,
+  "frac_priority_habitat": 0.42,
+  "frac_forest": 0.7,
+  "frac_vernal_pool": 0.08,
+  "frac_grassland": 0.05,
+  "natural_frac_context": 0.8,
+  "canopy_area_m2": 28000,
+  "transit_distance_m": 3200,
+  "frac_impervious": 0.06,
+  "frac_developed": 0.1,
+  "frac_agriculture": 0.08,
+  "is_brownfield": false,
+  "mature_canopy_frac": 0.55,
+  "frac_open_land": 0.14,
+  "stream_distance_m": 60,
+  "water_distance_m": 60,
+  "mean_slope_deg": 5,
+  "forest_patch_area_m2": 1100000,
+  "species": [
+    {"name": "beaver", "sightings_count": 5},
+    {"name": "bats", "sightings_count": 3},
+    {"name": "pollinators", "sightings_count": 8}
+  ],
+  "triggers": {"nhesp_priority_habitat": true, "wetland_or_buffer": true, "riverfront_area": true},
+  "hard_triggers": {},
+  "n_all_records": 85,
+  "nlcd_confidence": 0.88,
+  "mean_location_uncertainty_m": 200,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "lat": 42.707,
+  "lon": -71.1631,
+  "schema_version": "1.0",
+  "label": "Lawrence (dense post-industrial river city)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "FEMA", "MBTA", "MassDEP-21E", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.03,
+  "frac_priority_habitat": 0.02,
+  "frac_forest": 0.07,
+  "frac_vernal_pool": 0.0,
+  "frac_grassland": 0.03,
+  "natural_frac_context": 0.15,
+  "canopy_area_m2": 2000,
+  "transit_distance_m": 550,
+  "frac_impervious": 0.78,
+  "frac_developed": 0.9,
+  "frac_agriculture": 0.0,
+  "is_brownfield": true,
+  "mature_canopy_frac": 0.04,
+  "frac_open_land": 0.05,
+  "stream_distance_m": 180,
+  "water_distance_m": 110,
+  "mean_slope_deg": 2,
+  "forest_patch_area_m2": 15000,
+  "species": [
+    {"name": "beaver", "sightings_count": 0},
+    {"name": "bats", "sightings_count": 0},
+    {"name": "pollinators", "sightings_count": 4}
+  ],
+  "triggers": {"fema_flood_zone": true, "riverfront_area": true},
+  "hard_triggers": {},
+  "n_all_records": 112,
+  "nlcd_confidence": 0.93,
+  "mean_location_uncertainty_m": 95,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

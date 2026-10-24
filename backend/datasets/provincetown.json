@@ -1,0 +1,43 @@
+{
+  "lat": 42.0501,
+  "lon": -70.1853,
+  "schema_version": "1.0",
+  "label": "Provincetown (Cape Cod dunes, protected)",
+  "coverage": "national+MA",
+  "data_sources": ["NLCD", "NWI", "PAD-US", "NHESP", "FEMA", "GBIF", "iNaturalist"],
+  "fetched_at": "2026-10-24T00:00:00+00:00",
+  "is_live": false,
+  "frac_wetland": 0.22,
+  "frac_priority_habitat": 0.5,
+  "frac_forest": 0.18,
+  "frac_vernal_pool": 0.04,
+  "frac_grassland": 0.3,
+  "natural_frac_context": 0.85,
+  "canopy_area_m2": 4000,
+  "transit_distance_m": 5000,
+  "frac_impervious": 0.1,
+  "frac_developed": 0.15,
+  "frac_agriculture": 0.0,
+  "is_brownfield": false,
+  "mature_canopy_frac": 0.1,
+  "frac_open_land": 0.45,
+  "stream_distance_m": 300,
+  "water_distance_m": 80,
+  "mean_slope_deg": 2,
+  "forest_patch_area_m2": 150000,
+  "species": [
+    {"name": "beaver", "sightings_count": 0},
+    {"name": "bats", "sightings_count": 1},
+    {"name": "pollinators", "sightings_count": 12}
+  ],
+  "triggers": {"protected_open_space": true, "nhesp_priority_habitat": true, "fema_flood_zone": true, "riverfront_area": true},
+  "hard_triggers": {"protected_open_space": true},
+  "n_all_records": 75,
+  "nlcd_confidence": 0.85,
+  "mean_location_uncertainty_m": 220,
+  "layer_available": {
+    "land_cover": true, "tree_canopy": true, "impervious": true,
+    "wetlands": true, "streams": true, "flood": true, "protected": true,
+    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+  }
+}

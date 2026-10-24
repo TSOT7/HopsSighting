@@ -294,7 +294,10 @@ def score(d: SiteData) -> ScoreResult:
     e_climate = subs["S_Cb"]
     e_site = (subs["S_L"] + subs["S_G"]) / 2.0
     gw = config.GROUP_WEIGHTS
-    e_raw = clip(gw["eco"] * e_eco + gw["climate"] * e_climate + gw["site"] * e_site, 0, 100)
+    e_blended = gw["eco"] * e_eco + gw["climate"] * e_climate + gw["site"] * e_site
+    # Stretch around the pivot to spread scores out of the mid-range cluster.
+    e_spread = config.SPREAD_PIVOT + (e_blended - config.SPREAD_PIVOT) * config.SPREAD_GAIN
+    e_raw = clip(e_spread, 0, 100)
     categories = {"E_eco": e_eco, "E_climate": e_climate, "E_site": e_site}
 
     flags: list[str] = []
