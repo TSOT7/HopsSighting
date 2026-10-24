@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run backend tests on save",
+      "trigger": "PostFileSave",
+      "description": "Runs the backend pytest suite whenever a Python file under backend/ is saved.",
+      "matcher": "backend/.*\\.py$",
+      "action": {
+        "type": "command",
+        "command": "cd backend && if [ -x .venv/bin/python ]; then .venv/bin/python -m pytest -q 2>&1 | tail -20; else echo \"venv not found; skipping tests\"; fi"
+      }
+    }
+  ]
+}
