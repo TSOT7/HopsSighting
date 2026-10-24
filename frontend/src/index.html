@@ -745,9 +745,11 @@
       
       const CONFIG = {
         defaultCenter: [42.36, -71.05], // Boston area
-        defaultZoom: 12,
+        defaultZoom: 9,
         hexRadius: 0.5, // kilometers
-        apiBase: "http://localhost:8080"
+        apiBase: "http://localhost:8080",
+        // Massachusetts GeoJSON from US Census TIGER boundaries (public domain)
+        maGeoJsonUrl: "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
       };
       
       // ═══════════════════════════════════════════════════════════════
@@ -833,6 +835,58 @@
         }).addTo(map);
         
         map.on('click', onMapClick);
+
+        // Load Massachusetts state boundary overlay
+        loadMassachusettsBoundary();
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // MASSACHUSETTS STATE BOUNDARY
+      // ═══════════════════════════════════════════════════════════════
+
+      let maBoundaryLayer = null;
+
+      async function loadMassachusettsBoundary() {
+        try {
+          const res = await fetch(CONFIG.maGeoJsonUrl);
+          const data = await res.json();
+
+          // Filter to Massachusetts only
+          const maFeature = {
+            type: "FeatureCollection",
+            features: data.features.filter(
+              f => f.properties.name === "Massachusetts"
+            )
+          };
+
+          if (maFeature.features.length === 0) {
+            console.warn("Massachusetts feature not found in GeoJSON");
+            return;
+          }
+
+          maBoundaryLayer = L.geoJSON(maFeature, {
+            style: {
+              color: "#2E4A3B",       // deep forest sage border
+              weight: 2.5,
+              opacity: 0.9,
+              fillColor: "#7A9A80",   // soft moss fill
+              fillOpacity: 0.07,
+              dashArray: "6 3"
+            },
+            onEachFeature: function(feature, layer) {
+              layer.bindTooltip(
+                `<strong style="font-family:serif;color:#2E4A3B;">Massachusetts</strong>`,
+                { sticky: true, opacity: 0.95 }
+              );
+            }
+          }).addTo(map);
+
+          // Zoom map to fit Massachusetts bounds
+          map.fitBounds(maBoundaryLayer.getBounds(), { padding: [20, 20] });
+
+        } catch (err) {
+          console.error("Failed to load Massachusetts boundary:", err);
+        }
       }
       
       // ═══════════════════════════════════════════════════════════════
