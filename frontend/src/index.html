@@ -3,79 +3,1360 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HopsSighting</title>
+    <title>HopsSighting – Climate Tech GIS Platform</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
     <style>
-      body {
-        font-family: system-ui, sans-serif;
-        margin: 2rem auto;
-        max-width: 42rem;
-        padding: 0 1rem;
-        color: #1a2e1a;
+      /* ═══════════════════════════════════════════════════════════════
+         CLIMATE-TECH ORGANIC-EDITORIAL DESIGN SYSTEM
+         ═══════════════════════════════════════════════════════════════ */
+      
+      :root {
+        /* Palette */
+        --bg-warm-cream: #F4F1EA;
+        --card-white: #FAF8F5;
+        --border-warm: #E4DDD0;
+        --deep-forest-sage: #2E4A3B;
+        --soft-moss: #7A9A80;
+        --warm-terracotta: #C87A53;
+        --espresso-charcoal: #242A26;
+        
+        /* Typography */
+        --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
       }
-      h1 { color: #2e7d32; }
-      .status { font-weight: 600; }
-      .ok { color: #2e7d32; }
-      .err { color: #c62828; }
-      pre {
-        background: #f3f6f3;
-        padding: 1rem;
+      
+      * {
+        box-sizing: border-box;
+      }
+      
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: var(--font-sans);
+        background: var(--bg-warm-cream);
+        color: var(--espresso-charcoal);
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         MAIN LAYOUT: Full-height GIS Workspace
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .app-container {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+      
+      /* Map Canvas – Left/Main Area */
+      .map-canvas {
+        flex: 1;
+        position: relative;
+        border-right: 1px solid var(--border-warm);
+      }
+      
+      #map {
+        width: 100%;
+        height: 100%;
+        background: var(--bg-warm-cream);
+      }
+      
+      /* Leaflet Custom Styles */
+      .leaflet-container {
+        font-family: var(--font-sans);
+      }
+      
+      .leaflet-popup-content-wrapper {
+        background: var(--card-white);
+        border: 1px solid var(--border-warm);
         border-radius: 8px;
-        overflow-x: auto;
+        box-shadow: 0 4px 16px rgba(36, 42, 38, 0.12);
       }
-      .sighting {
-        border: 1px solid #d7e4d7;
+      
+      .leaflet-popup-tip {
+        background: var(--card-white);
+        border: 1px solid var(--border-warm);
+      }
+      
+      .leaflet-popup-content {
+        margin: 0.75rem 1rem;
+        font-size: 0.875rem;
+        color: var(--espresso-charcoal);
+      }
+      
+      /* Hexagon Styles */
+      .hexagon-default {
+        fill: rgba(122, 154, 128, 0.25);
+        stroke: #3A5741;
+        stroke-width: 2;
+        fill-opacity: 0.6;
+      }
+      
+      .hexagon-selected {
+        fill: rgba(46, 74, 59, 0.35);
+        stroke: #2E4A3B;
+        stroke-width: 3;
+        fill-opacity: 0.8;
+      }
+      
+      .hexagon-hover {
+        fill: rgba(122, 154, 128, 0.4);
+        stroke: #7A9A80;
+        stroke-width: 2.5;
+      }
+      
+      /* Map Instructions Overlay */
+      .map-instructions {
+        position: absolute;
+        bottom: 1rem;
+        left: 1rem;
+        background: var(--card-white);
+        border: 1px solid var(--border-warm);
         border-radius: 8px;
         padding: 0.75rem 1rem;
-        margin: 0.5rem 0;
+        font-size: 0.8125rem;
+        color: var(--soft-moss);
+        z-index: 1000;
+        box-shadow: 0 2px 12px rgba(36, 42, 38, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .map-instructions kbd {
+        background: var(--bg-warm-cream);
+        border: 1px solid var(--border-warm);
+        border-radius: 4px;
+        padding: 0.125rem 0.375rem;
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         FLOATING SIDE PANEL
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .side-panel {
+        width: 420px;
+        background: var(--card-white);
+        border-left: 1px solid var(--border-warm);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: -8px 0 32px rgba(36, 42, 38, 0.08);
+      }
+      
+      .panel-header {
+        padding: 1.75rem 1.5rem 1.25rem;
+        border-bottom: 1px solid var(--border-warm);
+        background: linear-gradient(to bottom, #FDFCFA, var(--card-white));
+      }
+      
+      .panel-header h1 {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 1.75rem;
+        color: var(--deep-forest-sage);
+        margin: 0 0 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .status-badge {
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.625rem;
+        border-radius: 100px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .status-badge.ok {
+        background: rgba(122, 154, 128, 0.15);
+        color: var(--deep-forest-sage);
+      }
+      
+      .status-badge.err {
+        background: rgba(200, 122, 83, 0.15);
+        color: var(--warm-terracotta);
+      }
+      
+      .status-badge.checking {
+        background: rgba(46, 74, 59, 0.08);
+        color: var(--soft-moss);
+      }
+      
+      .panel-subtitle {
+        font-size: 0.875rem;
+        color: var(--soft-moss);
+        margin: 0;
+      }
+      
+      /* Panel Content */
+      .panel-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.25rem 1.5rem;
+      }
+      
+      .section-title {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: 1.125rem;
+        color: var(--espresso-charcoal);
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .section-title::before {
+        content: '';
+        width: 3px;
+        height: 1.25rem;
+        background: var(--warm-terracotta);
+        border-radius: 2px;
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         HEXAGON INFO PANEL
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .hexagon-info {
+        background: var(--card-white);
+        border: 1px solid var(--border-warm);
+        border-radius: 12px;
+        padding: 1.125rem;
+        margin-bottom: 1rem;
+      }
+      
+      .hexagon-info-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.875rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-warm);
+      }
+      
+      .hexagon-id {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: 1.0625rem;
+        color: var(--espresso-charcoal);
+      }
+      
+      .hexagon-badge {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: rgba(122, 154, 128, 0.15);
+        color: var(--deep-forest-sage);
+      }
+      
+      .hexagon-stats {
+        display: grid;
+        gap: 0.625rem;
+      }
+      
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8125rem;
+      }
+      
+      .stat-label {
+        color: var(--soft-moss);
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+      
+      .stat-value {
+        color: var(--espresso-charcoal);
+        font-weight: 500;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        font-size: 0.8125rem;
+      }
+      
+      /* Environmental Score Progress Bar */
+      .env-score-section {
+        margin-top: 1rem;
+        padding-top: 0.875rem;
+        border-top: 1px solid var(--border-warm);
+      }
+      
+      .env-score-label {
+        font-size: 0.8125rem;
+        color: var(--soft-moss);
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+      }
+      
+      .env-score-bar {
+        height: 8px;
+        background: var(--border-warm);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      
+      .env-score-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--warm-terracotta), var(--deep-forest-sage));
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+      
+      /* Buttons */
+      .btn-group {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.875rem;
+      }
+      
+      .btn {
+        flex: 1;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid;
+      }
+      
+      .btn-danger {
+        background: transparent;
+        border-color: rgba(200, 122, 83, 0.3);
+        color: var(--warm-terracotta);
+      }
+      
+      .btn-danger:hover {
+        background: rgba(200, 122, 83, 0.08);
+        border-color: var(--warm-terracotta);
+      }
+      
+      .btn-secondary {
+        background: transparent;
+        border-color: var(--border-warm);
+        color: var(--soft-moss);
+      }
+      
+      .btn-secondary:hover {
+        background: var(--bg-warm-cream);
+        border-color: var(--soft-moss);
+        color: var(--deep-forest-sage);
+      }
+      
+      .copy-btn {
+        background: transparent;
+        border: 1px solid var(--border-warm);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        color: var(--soft-moss);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: 0.5rem;
+      }
+      
+      .copy-btn:hover {
+        background: var(--bg-warm-cream);
+        border-color: var(--soft-moss);
+      }
+      
+      .copy-btn.copied {
+        background: rgba(122, 154, 128, 0.15);
+        border-color: var(--soft-moss);
+        color: var(--deep-forest-sage);
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         SIGHTING CARDS
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .sighting-card {
+        background: var(--card-white);
+        border: 1px solid var(--border-warm);
+        border-radius: 12px;
+        padding: 1rem 1.125rem;
+        margin-bottom: 0.75rem;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+        cursor: pointer;
+      }
+      
+      .sighting-card:hover {
+        box-shadow: 0 4px 16px rgba(36, 42, 38, 0.1);
+        transform: translateY(-1px);
+        border-color: var(--soft-moss);
+      }
+      
+      .sighting-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.625rem;
+      }
+      
+      .sighting-species {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: 1.0625rem;
+        color: var(--espresso-charcoal);
+        margin: 0;
+      }
+      
+      .sighting-id {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--soft-moss);
+        font-family: var(--font-sans);
+      }
+      
+      .sighting-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        font-size: 0.8125rem;
+      }
+      
+      .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        color: var(--espresso-charcoal);
+      }
+      
+      .detail-icon {
+        font-size: 0.875rem;
+      }
+      
+      .confidence-bar {
+        grid-column: 1 / -1;
+        margin-top: 0.375rem;
+      }
+      
+      .confidence-track {
+        height: 4px;
+        background: var(--border-warm);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      
+      .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--soft-moss), var(--deep-forest-sage));
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
+      
+      .confidence-label {
+        font-size: 0.75rem;
+        color: var(--soft-moss);
+        margin-top: 0.25rem;
+        display: flex;
+        justify-content: space-between;
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         EMPTY & ERROR STATES
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--soft-moss);
+      }
+      
+      .empty-state-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.6;
+      }
+      
+      .empty-state p {
+        margin: 0;
+        font-size: 0.9375rem;
+      }
+      
+      .hint-text {
+        font-size: 0.8125rem;
+        color: var(--soft-moss);
+        margin-top: 0.5rem;
+        opacity: 0.8;
+      }
+      
+      .error-message {
+        background: rgba(200, 122, 83, 0.08);
+        border: 1px solid rgba(200, 122, 83, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: var(--warm-terracotta);
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         LOADING SKELETON
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .skeleton {
+        background: linear-gradient(90deg, var(--border-warm) 25%, #EDE9E0 50%, var(--border-warm) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 6px;
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      
+      .skeleton-card {
+        height: 120px;
+        margin-bottom: 0.75rem;
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         EXPORT PDF BUTTON
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .btn-export {
+        background: var(--deep-forest-sage);
+        border: none;
+        color: white;
+        padding: 0.625rem 1rem;
+        border-radius: 6px;
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        margin-top: 0.75rem;
+      }
+      
+      .btn-export:hover {
+        background: #3A5741;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46, 74, 59, 0.25);
+      }
+      
+      .btn-export:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         PRINT STYLES
+         ═══════════════════════════════════════════════════════════════ */
+      
+      @media print {
+        /* Hide non-essential elements */
+        .map-canvas,
+        .map-instructions,
+        .btn-group,
+        .btn-export,
+        .copy-btn,
+        #sightings,
+        .section-title:last-of-type {
+          display: none !important;
+        }
+        
+        /* Reset layout for print */
+        body {
+          background: white !important;
+          color: #1a1a1a !important;
+        }
+        
+        .app-container {
+          display: block !important;
+          height: auto !important;
+        }
+        
+        .side-panel {
+          width: 100% !important;
+          max-width: 8.5in !important;
+          margin: 0 auto !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+        
+        .panel-header {
+          background: white !important;
+          border-bottom: 2px solid #2E4A3B !important;
+          padding: 0.5in 0 0.25in 0 !important;
+        }
+        
+        .panel-header h1 {
+          font-size: 24pt !important;
+        }
+        
+        .status-badge {
+          display: none !important;
+        }
+        
+        .panel-content {
+          padding: 0.25in 0 !important;
+        }
+        
+        .hexagon-info {
+          border: 1px solid #ccc !important;
+          background: white !important;
+          page-break-inside: avoid;
+        }
+        
+        .env-score-bar {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        /* Print header */
+        .print-header {
+          display: block !important;
+          text-align: center;
+          margin-bottom: 0.5in;
+        }
+        
+        .print-header h1 {
+          font-family: var(--font-serif);
+          font-size: 28pt;
+          color: var(--deep-forest-sage);
+          margin: 0 0 0.125in 0;
+        }
+        
+        .print-header p {
+          font-size: 10pt;
+          color: #666;
+          margin: 0;
+        }
+        
+        .print-timestamp {
+          text-align: right;
+          font-size: 9pt;
+          color: #888;
+          margin-bottom: 0.25in;
+        }
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         RESPONSIVE
+         ═══════════════════════════════════════════════════════════════ */
+      
+      @media (max-width: 768px) {
+        .app-container {
+          flex-direction: column;
+        }
+        
+        .map-canvas {
+          min-height: 50vh;
+          border-right: none;
+          border-bottom: 1px solid var(--border-warm);
+        }
+        
+        .side-panel {
+          width: 100%;
+          max-height: 50vh;
+        }
+        
+        .map-instructions {
+          bottom: 0.5rem;
+          left: 0.5rem;
+          right: 0.5rem;
+          font-size: 0.75rem;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>🌿 HopsSighting</h1>
-    <p>Hour 1 hello world. Backend status: <span id="status" class="status">checking…</span></p>
+    <div class="app-container">
+      <!-- MAP CANVAS -->
+      <div class="map-canvas">
+        <div id="map"></div>
+        <div class="map-instructions">
+          <kbd>Click</kbd> anywhere on the map to draw a hexagon
+        </div>
+      </div>
+      
+      <!-- SIDE PANEL -->
+      <div class="side-panel">
+        <div class="panel-header">
+          <h1>
+            🦫 HopsSighting
+            <span id="status" class="status-badge checking">Checking…</span>
+          </h1>
+          <p class="panel-subtitle">Clean energy zoning guide</p>
+        </div>
+        
+        <div class="panel-content">
+          <!-- Selected Hexagon Info -->
+          <h2 class="section-title">Selected Hexagon</h2>
+          <div id="hexagon-info">
+            <div class="empty-state">
+              <div class="empty-state-icon">⬡</div>
+              <p>No hexagon selected</p>
+              <p class="hint-text">Click on the map to create one</p>
+            </div>
+          </div>
+          
+          <!-- Sightings Section -->
+          <h2 class="section-title" style="margin-top: 1.5rem;">Recent Sightings</h2>
+          <div id="sightings">
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <h2>Sightings</h2>
-    <div id="sightings">loading…</div>
-
-    <h3>Raw JSON</h3>
-    <pre id="raw">—</pre>
-
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Turf.js for geospatial operations -->
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <!-- html2canvas for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <script>
-      const API = "http://localhost:8080";
-
-      async function load() {
-        const statusEl = document.getElementById("status");
-        const listEl = document.getElementById("sightings");
-        const rawEl = document.getElementById("raw");
-
-        try {
-          const health = await fetch(`${API}/api/health`).then((r) => r.json());
-          statusEl.textContent = `${health.status} (v${health.version})`;
-          statusEl.className = "status ok";
-
-          const sightings = await fetch(`${API}/api/sightings`).then((r) => r.json());
-          rawEl.textContent = JSON.stringify(sightings, null, 2);
-
-          listEl.innerHTML = sightings
-            .map(
-              (s) => `
-              <div class="sighting">
-                <strong>${s.species}</strong> (${s.id})<br />
-                📍 ${s.lat}, ${s.lon}<br />
-                🕒 ${s.observed_at}<br />
-                🎯 confidence ${(s.confidence * 100).toFixed(0)}%
-              </div>`
-            )
-            .join("");
-        } catch (e) {
-          statusEl.textContent = "unreachable";
-          statusEl.className = "status err";
-          listEl.textContent = "Could not reach the backend. Is it running on :8080?";
-          rawEl.textContent = String(e);
+      // ═══════════════════════════════════════════════════════════════
+      // CONFIGURATION
+      // ═══════════════════════════════════════════════════════════════
+      
+      const CONFIG = {
+        defaultCenter: [42.36, -71.05], // Boston area
+        defaultZoom: 12,
+        hexRadius: 0.5, // kilometers
+        apiBase: "http://localhost:8080"
+      };
+      
+      // ═══════════════════════════════════════════════════════════════
+      // STATE
+      // ═══════════════════════════════════════════════════════════════
+      
+      let map;
+      let drawnHexagons = [];
+      let selectedHexagon = null;
+      let hexagonCounter = 1000;
+      
+      // ═══════════════════════════════════════════════════════════════
+      // HEXAGON GEOMETRY (using Turf.js)
+      // ═══════════════════════════════════════════════════════════════
+      
+      /**
+       * Generate hexagon using Turf.js circle with 6 steps
+       */
+      function createHexagonWithTurf(center, radiusKm) {
+        // Create a point at the center
+        const point = turf.point([center[1], center[0]]); // [lng, lat] for Turf
+        
+        // Create a circle with 6 steps (hexagon)
+        const hexagon = turf.circle(point, radiusKm, { steps: 6, units: 'kilometers' });
+        
+        return hexagon;
+      }
+      
+      /**
+       * Calculate hexagon metrics using Turf.js
+       */
+      function calculateHexagonMetrics(turfHexagon) {
+        const centroid = turf.centroid(turfHexagon);
+        const area = turf.area(turfHexagon) / 1000000; // Convert m² to km²
+        const perimeter = turf.length(turfHexagon, { units: 'kilometers' });
+        
+        return {
+          centroid: [centroid.geometry.coordinates[1], centroid.geometry.coordinates[0]], // [lat, lng]
+          area: area,
+          perimeter: perimeter
+        };
+      }
+      
+      /**
+       * Convert Turf hexagon to Leaflet coordinates
+       */
+      function turfToLeaflet(turfHexagon) {
+        const coords = turfHexagon.geometry.coordinates[0];
+        return coords.map(c => [c[1], c[0]]); // Convert [lng, lat] to [lat, lng]
+      }
+      
+      /**
+       * Generate unique hexagon ID
+       */
+      function generateHexagonId() {
+        hexagonCounter++;
+        return `HEX-${hexagonCounter.toString().padStart(4, '0')}`;
+      }
+      
+      /**
+       * Generate random environmental score
+       */
+      function generateEnvScore() {
+        return Math.floor(Math.random() * 40) + 60; // 60-100 range
+      }
+      
+      // ═══════════════════════════════════════════════════════════════
+      // MAP INITIALIZATION
+      // ═══════════════════════════════════════════════════════════════
+      
+      function initMap() {
+        map = L.map('map', {
+          center: CONFIG.defaultCenter,
+          zoom: CONFIG.defaultZoom,
+          zoomControl: true
+        });
+        
+        // CartoDB Positron tiles (clean light basemap)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: 'abcd',
+          maxZoom: 19
+        }).addTo(map);
+        
+        map.on('click', onMapClick);
+      }
+      
+      // ═══════════════════════════════════════════════════════════════
+      // HEXAGON DRAWING & INTERACTION
+      // ═══════════════════════════════════════════════════════════════
+      
+      function onMapClick(e) {
+        const center = [e.latlng.lat, e.latlng.lng];
+        drawHexagon(center);
+      }
+      
+      function drawHexagon(center) {
+        const hexId = generateHexagonId();
+        const turfHex = createHexagonWithTurf(center, CONFIG.hexRadius);
+        const leafletCoords = turfToLeaflet(turfHex);
+        const metrics = calculateHexagonMetrics(turfHex);
+        
+        const polygon = L.polygon(leafletCoords, {
+          color: '#3A5741',
+          weight: 2,
+          fillColor: '#7A9A80',
+          fillOpacity: 0.25
+        }).addTo(map);
+        
+        const hexData = {
+          id: hexId,
+          center: center,
+          turfHexagon: turfHex,
+          polygon: polygon,
+          area: metrics.area,
+          perimeter: metrics.perimeter,
+          centroid: metrics.centroid,
+          envScore: generateEnvScore()
+        };
+        
+        drawnHexagons.push(hexData);
+        
+        polygon.on('click', function(e) {
+          L.DomEvent.stopPropagation(e);
+          selectHexagon(hexData);
+        });
+        
+        selectHexagon(hexData);
+      }
+      
+      function selectHexagon(hexData) {
+        if (selectedHexagon) {
+          selectedHexagon.polygon.setStyle({
+            color: '#3A5741',
+            weight: 2,
+            fillColor: '#7A9A80',
+            fillOpacity: 0.25
+          });
+        }
+        
+        selectedHexagon = hexData;
+        hexData.polygon.setStyle({
+          color: '#2E4A3B',
+          weight: 3,
+          fillColor: '#2E4A3B',
+          fillOpacity: 0.35
+        });
+        
+        hexData.polygon.bringToFront();
+        updateHexagonInfo(hexData);
+      }
+      
+      function updateHexagonInfo(hexData) {
+        const container = document.getElementById('hexagon-info');
+        
+        container.innerHTML = `
+          <div class="hexagon-info">
+            <div class="hexagon-info-header">
+              <div style="display: flex; align-items: center;">
+                <span class="hexagon-id">${hexData.id}</span>
+                <button class="copy-btn" onclick="copyHexId('${hexData.id}')">Copy ID</button>
+              </div>
+              <span class="hexagon-badge">Active Zone</span>
+            </div>
+            <div class="hexagon-stats">
+              <div class="stat-row">
+                <span class="stat-label">📍 Centroid</span>
+                <span class="stat-value">${hexData.centroid[0].toFixed(5)}, ${hexData.centroid[1].toFixed(5)}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">📏 Area</span>
+                <span class="stat-value">${hexData.area.toFixed(3)} km²</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">📐 Perimeter</span>
+                <span class="stat-value">${hexData.perimeter.toFixed(2)} km</span>
+              </div>
+            </div>
+            <div class="env-score-section">
+              <div class="env-score-label">
+                <span>Environmental Impact Score</span>
+                <span><strong>${hexData.envScore}</strong>/100</span>
+              </div>
+              <div class="env-score-bar">
+                <div class="env-score-fill" style="width: ${hexData.envScore}%"></div>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-danger" onclick="deleteHexagon('${hexData.id}')">Remove Parcel</button>
+              <button class="btn btn-secondary" onclick="clearAllHexagons()">Clear Map</button>
+            </div>
+            <button class="btn-export" onclick="exportPDF('${hexData.id}')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10,9 9,9 8,9"></polyline>
+              </svg>
+              Export Executive PDF
+            </button>
+          </div>
+        `;
+      }
+      
+      function copyHexId(hexId) {
+        navigator.clipboard.writeText(hexId).then(() => {
+          const btn = document.querySelector('.copy-btn');
+          if (btn) {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = 'Copy ID';
+              btn.classList.remove('copied');
+            }, 2000);
+          }
+        });
+      }
+      
+      function deleteHexagon(hexId) {
+        const index = drawnHexagons.findIndex(h => h.id === hexId);
+        if (index === -1) return;
+        
+        const hexData = drawnHexagons[index];
+        map.removeLayer(hexData.polygon);
+        drawnHexagons.splice(index, 1);
+        
+        if (selectedHexagon && selectedHexagon.id === hexId) {
+          selectedHexagon = null;
+          document.getElementById('hexagon-info').innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">⬡</div>
+              <p>No hexagon selected</p>
+              <p class="hint-text">Click on the map to create one</p>
+            </div>
+          `;
         }
       }
-
-      load();
+      
+      function clearAllHexagons() {
+        drawnHexagons.forEach(h => map.removeLayer(h.polygon));
+        drawnHexagons = [];
+        selectedHexagon = null;
+        document.getElementById('hexagon-info').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⬡</div>
+            <p>No hexagon selected</p>
+            <p class="hint-text">Click on the map to create one</p>
+          </div>
+        `;
+      }
+      
+      // ═══════════════════════════════════════════════════════════════
+      // BACKEND API
+      // ═══════════════════════════════════════════════════════════════
+      
+      async function loadBackendData() {
+        const statusEl = document.getElementById("status");
+        const listEl = document.getElementById("sightings");
+        
+        try {
+          const health = await fetch(`${CONFIG.apiBase}/api/health`).then((r) => r.json());
+          statusEl.textContent = `${health.status} (v${health.version})`;
+          statusEl.className = "status-badge ok";
+          
+          const sightings = await fetch(`${CONFIG.apiBase}/api/sightings`).then((r) => r.json());
+          
+          if (sightings.length === 0) {
+            listEl.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <p>No sightings recorded yet</p>
+              </div>
+            `;
+            return;
+          }
+          
+          listEl.innerHTML = sightings.map((s) => {
+            const confidencePercent = (s.confidence * 100).toFixed(0);
+            return `
+              <div class="sighting-card">
+                <div class="sighting-header">
+                  <h3 class="sighting-species">${s.species}</h3>
+                  <span class="sighting-id">ID: ${s.id}</span>
+                </div>
+                <div class="sighting-details">
+                  <div class="detail-item">
+                    <span class="detail-icon">📍</span>
+                    <span>${s.lat.toFixed(4)}, ${s.lon.toFixed(4)}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-icon">🕒</span>
+                    <span>${formatDate(s.observed_at)}</span>
+                  </div>
+                  <div class="confidence-bar">
+                    <div class="confidence-track">
+                      <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
+                    </div>
+                    <div class="confidence-label">
+                      <span>Confidence</span>
+                      <span>${confidencePercent}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("");
+        } catch (e) {
+          statusEl.textContent = "Offline";
+          statusEl.className = "status-badge err";
+          listEl.innerHTML = `
+            <div class="error-message">
+              <strong>Unable to connect to backend</strong><br>
+              Is the server running on port 8080?
+            </div>
+          `;
+        }
+      }
+      
+      function formatDate(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      // ═══════════════════════════════════════════════════════════════
+      // PDF EXPORT FUNCTIONALITY
+      // ═══════════════════════════════════════════════════════════════
+      
+      /**
+       * Generate and download PDF report for selected hexagon
+       */
+      async function exportPDF(hexId) {
+        const { jsPDF } = window.jspdf;
+        
+        // Find the hexagon data
+        const hexData = drawnHexagons.find(h => h.id === hexId);
+        if (!hexData) {
+          alert('No hexagon selected for export');
+          return;
+        }
+        
+        // Create PDF document
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const contentWidth = pageWidth - (margin * 2);
+        
+        let yPosition = margin;
+        
+        // ═══════════════════════════════════════════════════════════
+        // HEADER
+        // ═══════════════════════════════════════════════════════════
+        
+        // Title
+        doc.setFont('times', 'bold');
+        doc.setFontSize(28);
+        doc.setTextColor(46, 74, 59); // Deep Forest Sage
+        doc.text('HopsSighting', margin, yPosition);
+        yPosition += 8;
+        
+        // Subtitle
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(12);
+        doc.setTextColor(122, 154, 128); // Soft Moss
+        doc.text('Climate Tech GIS Platform – Site Assessment Report', margin, yPosition);
+        yPosition += 12;
+        
+        // Divider line
+        doc.setDrawColor(200, 122, 83); // Warm Terracotta
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 15;
+        
+        // ═══════════════════════════════════════════════════════════
+        // HEXAGON IDENTIFICATION
+        // ═══════════════════════════════════════════════════════════
+        
+        // Hexagon ID box
+        doc.setFillColor(250, 248, 245); // Card White
+        doc.setDrawColor(228, 221, 208); // Border Warm
+        doc.roundedRect(margin, yPosition, contentWidth, 20, 3, 3, 'FD');
+        
+        doc.setFont('times', 'bold');
+        doc.setFontSize(18);
+        doc.setTextColor(36, 42, 38); // Espresso Charcoal
+        doc.text(hexData.id, margin + 8, yPosition + 10);
+        
+        // Status badge
+        doc.setFillColor(122, 154, 128);
+        doc.roundedRect(pageWidth - margin - 35, yPosition + 5, 27, 10, 2, 2, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(255, 255, 255);
+        doc.text('ACTIVE', pageWidth - margin - 21.5, yPosition + 11.5);
+        
+        yPosition += 30;
+        
+        // ═══════════════════════════════════════════════════════════
+        // SPATIAL METRICS
+        // ═══════════════════════════════════════════════════════════
+        
+        doc.setFont('times', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(36, 42, 38);
+        doc.text('Spatial Metrics', margin, yPosition);
+        yPosition += 8;
+        
+        // Metrics grid
+        const metrics = [
+          { label: 'Centroid Coordinates', value: `${hexData.centroid[0].toFixed(5)}, ${hexData.centroid[1].toFixed(5)}` },
+          { label: 'Surface Area', value: `${hexData.area.toFixed(3)} km²` },
+          { label: 'Perimeter', value: `${hexData.perimeter.toFixed(2)} km` },
+          { label: 'Created', value: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }
+        ];
+        
+        metrics.forEach((metric, i) => {
+          const rowY = yPosition + (i * 12);
+          
+          doc.setFillColor(250, 248, 245);
+          doc.setDrawColor(228, 221, 208);
+          doc.roundedRect(margin, rowY, contentWidth, 10, 2, 2, 'FD');
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(122, 154, 128);
+          doc.text(metric.label, margin + 5, rowY + 6.5);
+          
+          doc.setFont('courier', 'normal');
+          doc.setTextColor(36, 42, 38);
+          doc.text(metric.value, pageWidth - margin - 5, rowY + 6.5, { align: 'right' });
+        });
+        
+        yPosition += (metrics.length * 12) + 15;
+        
+        // ═══════════════════════════════════════════════════════════
+        // ENVIRONMENTAL IMPACT SCORE
+        // ═══════════════════════════════════════════════════════════
+        
+        doc.setFont('times', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(36, 42, 38);
+        doc.text('Environmental Impact Score', margin, yPosition);
+        yPosition += 10;
+        
+        // Score label
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(122, 154, 128);
+        doc.text('Composite Risk Assessment', margin, yPosition);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(36, 42, 38);
+        doc.text(`${hexData.envScore}/100`, pageWidth - margin - 35, yPosition);
+        yPosition += 8;
+        
+        // Progress bar background
+        doc.setFillColor(228, 221, 208);
+        doc.roundedRect(margin, yPosition, contentWidth, 6, 3, 3, 'F');
+        
+        // Progress bar fill
+        const barWidth = (hexData.envScore / 100) * contentWidth;
+        const gradient = hexData.envScore > 75 ? [46, 74, 59] : [200, 122, 83];
+        doc.setFillColor(...gradient);
+        doc.roundedRect(margin, yPosition, barWidth, 6, 3, 3, 'F');
+        
+        yPosition += 20;
+        
+        // ═══════════════════════════════════════════════════════════
+        // KEYSTONE SPECIES BREAKDOWN
+        // ═══════════════════════════════════════════════════════════
+        
+        doc.setFont('times', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(36, 42, 38);
+        doc.text('Keystone Species Breakdown', margin, yPosition);
+        yPosition += 10;
+        
+        const species = [
+          { name: 'Haliaeetus leucocephalus', common: 'Bald Eagle', status: 'Protected', count: Math.floor(Math.random() * 5) + 1 },
+          { name: 'Lynx rufus', common: 'Bobcat', status: 'Monitored', count: Math.floor(Math.random() * 8) + 2 },
+          { name: 'Ursus americanus', common: 'Black Bear', status: 'Stable', count: Math.floor(Math.random() * 3) }
+        ];
+        
+        species.forEach((s, i) => {
+          const rowY = yPosition + (i * 14);
+          
+          doc.setFillColor(250, 248, 245);
+          doc.setDrawColor(228, 221, 208);
+          doc.roundedRect(margin, rowY, contentWidth, 12, 2, 2, 'FD');
+          
+          // Species name
+          doc.setFont('times', 'italic');
+          doc.setFontSize(9);
+          doc.setTextColor(36, 42, 38);
+          doc.text(s.name, margin + 5, rowY + 5);
+          
+          // Common name
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(122, 154, 128);
+          doc.text(s.common, margin + 5, rowY + 10);
+          
+          // Status badge
+          const statusColor = s.status === 'Protected' ? [200, 122, 83] : [122, 154, 128];
+          doc.setFillColor(...statusColor);
+          const statusWidth = doc.getTextWidth(s.status) + 8;
+          doc.roundedRect(pageWidth - margin - statusWidth - 30, rowY + 2, statusWidth, 8, 2, 2, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(7);
+          doc.setTextColor(255, 255, 255);
+          doc.text(s.status, pageWidth - margin - 30 - statusWidth / 2 - 4, rowY + 7.5, { align: 'center' });
+          
+          // Count
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10);
+          doc.setTextColor(36, 42, 38);
+          doc.text(`${s.count}`, pageWidth - margin - 10, rowY + 8, { align: 'right' });
+        });
+        
+        yPosition += (species.length * 14) + 15;
+        
+        // Check if we need a new page for mitigation section
+        if (yPosition > pageHeight - 80) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        
+        // ═══════════════════════════════════════════════════════════
+        // MITIGATION RECOMMENDATIONS
+        // ═══════════════════════════════════════════════════════════
+        
+        doc.setFont('times', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(36, 42, 38);
+        doc.text('Mitigation Recommendations', margin, yPosition);
+        yPosition += 10;
+        
+        const tips = [
+          'Establish 100m buffer zones around identified nesting sites',
+          'Schedule construction activities outside breeding season (Mar–Aug)',
+          'Implement acoustic monitoring for species detection',
+          'Maintain vegetative corridors for wildlife movement'
+        ];
+        
+        tips.forEach((tip, i) => {
+          const rowY = yPosition + (i * 10);
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(36, 42, 38);
+          
+          // Bullet point
+          doc.setFillColor(200, 122, 83);
+          doc.circle(margin + 3, rowY + 3, 1.5, 'F');
+          
+          doc.text(tip, margin + 8, rowY + 4);
+        });
+        
+        yPosition += (tips.length * 10) + 20;
+        
+        // ═══════════════════════════════════════════════════════════
+        // FOOTER
+        // ═══════════════════════════════════════════════════════════
+        
+        doc.setDrawColor(228, 221, 208);
+        doc.setLineWidth(0.3);
+        doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(122, 154, 128);
+        doc.text(`Generated: ${new Date().toLocaleString('en-US')}`, margin, pageHeight - 18);
+        doc.text('HopsSighting Climate Tech GIS Platform', pageWidth - margin, pageHeight - 18, { align: 'right' });
+        doc.text(`Document ID: ${hexData.id}-RPT-${Date.now()}`, margin, pageHeight - 12);
+        
+        // ═══════════════════════════════════════════════════════════
+        // SAVE PDF
+        // ═══════════════════════════════════════════════════════════
+        
+        const filename = `HopsSighting_${hexData.id}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(filename);
+      }
+      
+      /**
+       * Print report using browser print dialog
+       */
+      function printReport() {
+        window.print();
+      }
+      
+      // ═══════════════════════════════════════════════════════════════
+      // INITIALIZATION
+      // ═══════════════════════════════════════════════════════════════
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        loadBackendData();
+      });
     </script>
   </body>
 </html>
