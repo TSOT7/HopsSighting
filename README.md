@@ -6,16 +6,73 @@ Pick a location on an interactive map and HopsSighting scores how ecologically s
 
 Built for the **Hackachusetts hackathon** — Climate Tech & Clean Energy track.
 
+## Demo video
+
+📹 **[Watch the demo on YouTube](#)** ← _replace with your link before submitting_
+
 ## What it does
 
-- **Interactive map (Leaflet):** a hex-grid over Massachusetts; click a cell to screen that location.
-- **Real scoring engine (Python, stdlib-only):** six sub-scores combined into an overall environmental rating, gated by hard regulatory triggers and shrunk toward a conservative prior when data confidence is low.
+- **Interactive map (Leaflet):** click anywhere on the Massachusetts hex-grid to screen that location.
+- **Real scoring engine (Python):** six sub-scores — habitat integrity, keystone species, connectivity, carbon & climate, land reuse, and regulatory — combined into an overall 0–100 environmental rating with an A–F grade.
 - **Keystone-species modules:** beaver, bats, and native pollinators, each with a habitat-based risk and a confidence level.
-- **Downloadable report:** a detailed, PDF-ready report explaining how the rating was computed, generated client-side from the backend's response.
+- **MassGIS land cover overlay:** live WMS layer showing forested, suburban, and developed land directly on the map.
+- **Hover tooltips on every metric:** grey `?` icons explain what each score and factor means in plain language.
+- **Downloadable PDF report:** generated client-side, includes the score, factor breakdown, species risk table, and mitigation recommendations.
 
 > **Note on data:** the demo scores each clicked location against the nearest of 14 prefilled Massachusetts city datasets. Scoring weights and thresholds are provisional placeholders pending calibration — the relative ordering of sites is sensible, absolute grades are not yet production-trustworthy. This is a screening tool, not a substitute for a permit review or a qualified ecologist.
 
+## How Kiro was used
+
+This project was built entirely inside the Kiro IDE using Autopilot mode throughout.
+
+### Spec-driven development
+The Sightings MVP feature was planned using Kiro's Spec workflow before a single line was written: `requirements.md` captured EARS-style acceptance criteria, `design.md` covered architecture and the scoring algorithm, and `tasks.md` produced an ordered, requirement-linked implementation plan. Each code change traces back to a numbered criterion rather than emerging from ad-hoc vibe coding. The spec forced early decisions about the API contract (`docs/api-contract.md`) that kept the frontend and backend in sync without rework.
+
+### Steering docs
+Three always-on steering files in `.kiro/steering/` kept Kiro aligned with project conventions across every session — no re-explaining the stack, route structure, or design system:
+- `product.md` — what HopsSighting is, the challenge track, and core user journeys.
+- `tech.md` — stack, conventions, run commands, and a live reference to the API contract via `#[[file:docs/api-contract.md]]` so Kiro always had the current schema in context.
+- `structure.md` — where new code and features belong in the repo.
+
+### Agent hooks
+A `PostFileSave` hook in `.kiro/hooks/backend-test-on-save.json` automatically runs the pytest suite whenever a Python file under `backend/` is saved. This tightened the feedback loop significantly — test failures surfaced immediately rather than at the end of a work session.
+
+### Vibe coding for the frontend
+The interactive map, hexagon drawing system, city markers, MassGIS WMS integration, PDF export, and the organic-editorial design system were built through iterative conversation with Kiro in Autopilot mode. Kiro read existing code before every edit, matched the project's conventions, and verified changes by checking for regressions — closer to pair programming than prompt-and-paste.
+
+### What made the biggest difference
+The combination of steering docs + spec was the highest-leverage move. Steering meant Kiro never forgot the project's constraints (no Node, UTC timestamps, `/api` prefix). The spec meant the scoring engine was designed before it was coded, which caught several edge cases — the conservative prior for low-confidence data, the hard regulatory gate — that would have been painful to retrofit.
+
 ## Tech Stack
+
+### Frontend
+| Layer | Technology |
+|---|---|
+| Map engine | [Leaflet](https://leafletjs.com/) 1.9.4 |
+| Basemap | Esri World Topo (free, no key) |
+| Land cover overlay | MassGIS Land Use 2016 WMS |
+| State boundary | PublicaMundi US States GeoJSON |
+| Geospatial math | [Turf.js](https://turfjs.org/) 6 |
+| PDF export | [jsPDF](https://github.com/parallax/jsPDF) 2.5 |
+| Fonts | Inter + Playfair Display (Google Fonts) |
+| Runtime | Plain HTML/CSS/JS — no build step, no framework |
+| Static server | Python stdlib `http.server` via `serve.py` |
+
+### Backend
+| Layer | Technology |
+|---|---|
+| API framework | [FastAPI](https://fastapi.tiangolo.com/) |
+| Server | [Uvicorn](https://www.uvicorn.org/) (ASGI) |
+| Data validation | [Pydantic](https://docs.pydantic.dev/) v2 |
+| Geospatial data | MassGIS datasets (forested, suburban, developed JSON) |
+| Runtime | Python 3.11+ |
+
+### Design System
+- Organic-editorial palette: forest sage, soft moss, warm terracotta, espresso charcoal
+- Responsive two-panel layout: full-height map canvas + floating side panel
+- Print-optimised styles for executive PDF reports
+
+
 
 ### Frontend
 | Layer | Technology |
