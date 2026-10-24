@@ -1,0 +1,15 @@
+# Backend cached layers
+backend/data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+
+# Env
+.env
