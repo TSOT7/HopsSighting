@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HopsSighting</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem auto;
+        max-width: 42rem;
+        padding: 0 1rem;
+        color: #1a2e1a;
+      }
+      h1 { color: #2e7d32; }
+      .status { font-weight: 600; }
+      .ok { color: #2e7d32; }
+      .err { color: #c62828; }
+      pre {
+        background: #f3f6f3;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+      .sighting {
+        border: 1px solid #d7e4d7;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin: 0.5rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🌿 HopsSighting</h1>
+    <p>Hour 1 hello world. Backend status: <span id="status" class="status">checking…</span></p>
+
+    <h2>Sightings</h2>
+    <div id="sightings">loading…</div>
+
+    <h3>Raw JSON</h3>
+    <pre id="raw">—</pre>
+
+    <script>
+      const API = "http://localhost:8080";
+
+      async function load() {
+        const statusEl = document.getElementById("status");
+        const listEl = document.getElementById("sightings");
+        const rawEl = document.getElementById("raw");
+
+        try {
+          const health = await fetch(`${API}/api/health`).then((r) => r.json());
+          statusEl.textContent = `${health.status} (v${health.version})`;
+          statusEl.className = "status ok";
+
+          const sightings = await fetch(`${API}/api/sightings`).then((r) => r.json());
+          rawEl.textContent = JSON.stringify(sightings, null, 2);
+
+          listEl.innerHTML = sightings
+            .map(
+              (s) => `
+              <div class="sighting">
+                <strong>${s.species}</strong> (${s.id})<br />
+                📍 ${s.lat}, ${s.lon}<br />
+                🕒 ${s.observed_at}<br />
+                🎯 confidence ${(s.confidence * 100).toFixed(0)}%
+              </div>`
+            )
+            .join("");
+        } catch (e) {
+          statusEl.textContent = "unreachable";
+          statusEl.className = "status err";
+          listEl.textContent = "Could not reach the backend. Is it running on :8080?";
+          rawEl.textContent = String(e);
+        }
+      }
+
+      load();
+    </script>
+  </body>
+</html>
