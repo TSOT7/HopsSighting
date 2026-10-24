@@ -14,6 +14,29 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     
     <style>
+      /* Toast animations */
+      @keyframes slideUp {
+        from {
+          transform: translateX(-50%) translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(-50%) translateY(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes slideDown {
+        from {
+          transform: translateX(-50%) translateY(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(-50%) translateY(20px);
+          opacity: 0;
+        }
+      }
+      
       /* ═══════════════════════════════════════════════════════════════
          CLIMATE-TECH ORGANIC-EDITORIAL DESIGN SYSTEM
          ═══════════════════════════════════════════════════════════════ */
@@ -165,11 +188,18 @@
         font-family: var(--font-serif);
         font-weight: 700;
         font-size: 1.75rem;
-        color: var(--deep-forest-sage);
+        color: var(--espresso-charcoal);
         margin: 0 0 0.25rem 0;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+      }
+      
+      .logo-beaver {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
       }
       
       .status-badge {
@@ -441,6 +471,114 @@
       .exec-summary-text strong {
         color: var(--deep-forest-sage);
         font-weight: 500;
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         SAVE LOCATION BUTTON
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .btn-save {
+        background: linear-gradient(135deg, var(--warm-terracotta), #D88A5F);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        margin-top: 0.75rem;
+      }
+      
+      .btn-save:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(200, 122, 83, 0.3);
+      }
+      
+      .btn-save svg {
+        width: 14px;
+        height: 14px;
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
+         SAVED LOCATIONS LIST
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .saved-location-card {
+        background: var(--card-white);
+        border: 1px solid var(--border-warm);
+        border-radius: 10px;
+        padding: 0.875rem 1rem;
+        margin-bottom: 0.625rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      
+      .saved-location-card:hover {
+        border-color: var(--soft-moss);
+        box-shadow: 0 2px 8px rgba(36, 42, 38, 0.08);
+        transform: translateX(2px);
+      }
+      
+      .saved-location-card.selected {
+        border-color: var(--warm-terracotta);
+        background: rgba(200, 122, 83, 0.04);
+      }
+      
+      .saved-location-icon {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #7A9A80, #8B5A2B);
+        border-radius: 50%;
+        border: 1.5px solid #7A9A80;
+        padding: 4px;
+      }
+      
+      .saved-location-icon svg {
+        width: 28px;
+        height: 28px;
+      }
+      
+      .saved-location-content {
+        flex: 1;
+        min-width: 0;
+      }
+      
+      .saved-location-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+      }
+      
+      .saved-location-id {
+        font-family: var(--font-sans);
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: var(--espresso-charcoal);
+      }
+      
+      .saved-location-time {
+        font-size: 0.6875rem;
+        color: var(--soft-moss);
+      }
+      
+      .saved-location-coords {
+        font-size: 0.75rem;
+        color: var(--soft-moss);
+        font-family: 'SF Mono', 'Monaco', monospace;
       }
       
       /* ═══════════════════════════════════════════════════════════════
@@ -757,8 +895,57 @@
       <div class="side-panel">
         <div class="panel-header">
           <h1>
-            🦫 HopsSighting
-            <span id="status" class="status-badge checking">Checking…</span>
+            <span class="logo-beaver">
+              <svg viewBox="0 0 44 44" width="44" height="44">
+                <!-- Sage green circular badge container -->
+                <circle cx="22" cy="22" r="21" fill="#7A9A80"/>
+                <circle cx="22" cy="22" r="20" fill="#FAF8F5" stroke="#E4DDD0" stroke-width="1.5"/>
+                
+                <!-- Beaver head -->
+                <g transform="translate(8, 9)">
+                  <!-- Main head/fur - Soft Warm Brown -->
+                  <ellipse cx="14" cy="14" rx="10" ry="9" fill="#8B5A2B"/>
+                  
+                  <!-- Left ear - Darker Chestnut -->
+                  <circle cx="5" cy="6" r="3.5" fill="#5D4037"/>
+                  <circle cx="5" cy="6" r="2" fill="#8B5A2B"/>
+                  
+                  <!-- Right ear -->
+                  <circle cx="23" cy="6" r="3.5" fill="#5D4037"/>
+                  <circle cx="23" cy="6" r="2" fill="#8B5A2B"/>
+                  
+                  <!-- Forehead highlight -->
+                  <ellipse cx="14" cy="9" rx="6" ry="4" fill="#9D6B3E" opacity="0.4"/>
+                  
+                  <!-- Muzzle/snout - lighter brown -->
+                  <ellipse cx="14" cy="17" rx="5" ry="4" fill="#A67C52"/>
+                  
+                  <!-- Nose - Darker Chestnut -->
+                  <ellipse cx="14" cy="14" rx="3.5" ry="2.5" fill="#5D4037"/>
+                  <ellipse cx="14" cy="13.5" rx="1.5" ry="1" fill="#3E2723" opacity="0.3"/>
+                  
+                  <!-- Left eye - friendly dark eyes -->
+                  <circle cx="9" cy="11" r="2.5" fill="#2D1810"/>
+                  <circle cx="9.7" cy="10.3" r="0.9" fill="#FAF8F5"/>
+                  
+                  <!-- Right eye -->
+                  <circle cx="19" cy="11" r="2.5" fill="#2D1810"/>
+                  <circle cx="19.7" cy="10.3" r="0.9" fill="#FAF8F5"/>
+                  
+                  <!-- Left buck tooth - cute and subtle -->
+                  <rect x="11.5" y="17.5" width="2" height="2.5" rx="0.8" fill="#FAF8F5"/>
+                  
+                  <!-- Right buck tooth -->
+                  <rect x="14.5" y="17.5" width="2" height="2.5" rx="0.8" fill="#FAF8F5"/>
+                  
+                  <!-- Cheek fluff - subtle -->
+                  <circle cx="6" cy="14" r="2" fill="#9D6B3E" opacity="0.3"/>
+                  <circle cx="22" cy="14" r="2" fill="#9D6B3E" opacity="0.3"/>
+                </g>
+              </svg>
+            </span>
+            HopsSighting
+            <span id="status" class="status-badge ok">Ready</span>
           </h1>
           <p class="panel-subtitle">Clean energy zoning guide</p>
         </div>
@@ -788,11 +975,14 @@
             </div>
           </div>
           
-          <!-- Sightings Section -->
-          <h2 class="section-title" style="margin-top: 1.5rem;">Recent Sightings</h2>
-          <div id="sightings">
-            <div class="skeleton skeleton-card"></div>
-            <div class="skeleton skeleton-card"></div>
+          <!-- Saved Locations Section -->
+          <h2 class="section-title" style="margin-top: 1.5rem;">Saved Locations</h2>
+          <div id="saved-locations">
+            <div class="empty-state">
+              <div class="empty-state-icon">📍</div>
+              <p>No saved locations yet</p>
+              <p class="hint-text">Save your current hexagon to bookmark it</p>
+            </div>
           </div>
         </div>
       </div>
@@ -827,7 +1017,10 @@
       
       let map;
       let activeHexagon = null; // Single-hexagon mode: only one active hexagon
+      let savedLocations = []; // Array of saved location objects with beaver markers
+      let selectedSavedLocation = null; // Currently selected saved location
       let hexagonCounter = 1000;
+      let savedLocationCounter = 100;
       
       // ═══════════════════════════════════════════════════════════════
       // HEXAGON GEOMETRY (using Turf.js)
@@ -995,6 +1188,9 @@
           activeHexagon = null;
         }
         
+        // Clear saved location selection when exploring new area
+        clearSavedLocationSelection();
+        
         const hexId = generateHexagonId();
         const turfHex = createHexagonWithTurf(center, CONFIG.hexRadius);
         const leafletCoords = turfToLeaflet(turfHex);
@@ -1028,6 +1224,17 @@
         
         // Immediately update side panel
         updateHexagonInfo(activeHexagon);
+      }
+      
+      /**
+       * Clear saved location selection (unhighlight)
+       */
+      function clearSavedLocationSelection() {
+        if (selectedSavedLocation) {
+          const prevCard = document.querySelector(`[data-location-id="${selectedSavedLocation.id}"]`);
+          if (prevCard) prevCard.classList.remove('selected');
+          selectedSavedLocation = null;
+        }
       }
       
       function updateHexagonInfo(hexData) {
@@ -1065,6 +1272,12 @@
                 <div class="env-score-fill" style="width: ${hexData.envScore}%"></div>
               </div>
             </div>
+            <button class="btn-save" onclick="saveCurrentLocation()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Save Current Location
+            </button>
             <div class="btn-group">
               <button class="btn btn-danger" onclick="removeActiveHexagon()">Remove Parcel</button>
               <button class="btn btn-secondary" onclick="clearActiveHexagon()">Clear Map</button>
@@ -1120,70 +1333,311 @@
       }
       
       // ═══════════════════════════════════════════════════════════════
+      // CUSTOM BEAVER SVG MARKER
+      // ═══════════════════════════════════════════════════════════════
+      
+      /**
+       * Generate custom beaver SVG marker HTML for map
+       */
+      function createBeaverSVGMarker() {
+        return `
+          <div style="
+            width: 32px;
+            height: 40px;
+            position: relative;
+            cursor: pointer;
+            filter: drop-shadow(0 2px 4px rgba(36, 42, 38, 0.2));
+          ">
+            <svg viewBox="0 0 32 40" width="32" height="40">
+              <!-- Pin shadow -->
+              <ellipse cx="16" cy="38" rx="5" ry="1.5" fill="#242A26" opacity="0.2"/>
+              
+              <!-- Pin point - sage green -->
+              <path d="M16 40 L11 28 Q16 31 21 28 Z" fill="#7A9A80"/>
+              
+              <!-- Circular badge container -->
+              <circle cx="16" cy="16" r="15" fill="#7A9A80"/>
+              <circle cx="16" cy="16" r="14" fill="#FAF8F5" stroke="#E4DDD0" stroke-width="1"/>
+              
+              <!-- Mini Beaver head -->
+              <g transform="translate(5, 6)">
+                <!-- Main head/fur -->
+                <ellipse cx="11" cy="11" rx="8" ry="7" fill="#8B5A2B"/>
+                
+                <!-- Left ear -->
+                <circle cx="4" cy="5" r="2.8" fill="#5D4037"/>
+                <circle cx="4" cy="5" r="1.6" fill="#8B5A2B"/>
+                
+                <!-- Right ear -->
+                <circle cx="18" cy="5" r="2.8" fill="#5D4037"/>
+                <circle cx="18" cy="5" r="1.6" fill="#8B5A2B"/>
+                
+                <!-- Muzzle/snout -->
+                <ellipse cx="11" cy="13" rx="4" ry="3" fill="#A67C52"/>
+                
+                <!-- Nose -->
+                <ellipse cx="11" cy="11" rx="2.8" ry="2" fill="#5D4037"/>
+                
+                <!-- Left eye -->
+                <circle cx="7" cy="8.5" r="2" fill="#2D1810"/>
+                <circle cx="7.5" cy="8" r="0.7" fill="#FAF8F5"/>
+                
+                <!-- Right eye -->
+                <circle cx="15" cy="8.5" r="2" fill="#2D1810"/>
+                <circle cx="15.5" cy="8" r="0.7" fill="#FAF8F5"/>
+                
+                <!-- Left buck tooth -->
+                <rect x="9" y="13.5" width="1.6" height="2" rx="0.6" fill="#FAF8F5"/>
+                
+                <!-- Right buck tooth -->
+                <rect x="11.4" y="13.5" width="1.6" height="2" rx="0.6" fill="#FAF8F5"/>
+              </g>
+            </svg>
+          </div>
+        `;
+      }
+      
+      /**
+       * Create Leaflet DivIcon with custom beaver SVG
+       */
+      function createBeaverMarkerIcon() {
+        return L.divIcon({
+          html: createBeaverSVGMarker(),
+          className: 'beaver-marker',
+          iconSize: [32, 40],
+          iconAnchor: [16, 40],
+          popupAnchor: [0, -40]
+        });
+      }
+      
+      // ═══════════════════════════════════════════════════════════════
+      // SAVED LOCATIONS MANAGEMENT
+      // ═══════════════════════════════════════════════════════════════
+      
+      /**
+       * Save current active hexagon location
+       */
+      function saveCurrentLocation() {
+        if (!activeHexagon) {
+          alert('No active hexagon to save');
+          return;
+        }
+        
+        savedLocationCounter++;
+        const savedId = `LOC-${savedLocationCounter.toString().padStart(3, '0')}`;
+        
+        const savedLocation = {
+          id: savedId,
+          hexagonId: activeHexagon.id,
+          centroid: [...activeHexagon.centroid],
+          area: activeHexagon.area,
+          perimeter: activeHexagon.perimeter,
+          envScore: activeHexagon.envScore,
+          timestamp: new Date().toISOString(),
+          marker: null // Will hold the Leaflet marker
+        };
+        
+        // Create beaver marker on the map
+        const beaverIcon = createBeaverMarkerIcon();
+        const marker = L.marker(savedLocation.centroid, {
+          icon: beaverIcon
+        }).addTo(map);
+        
+        // Click handler for marker selection
+        marker.on('click', function(e) {
+          L.DomEvent.stopPropagation(e);
+          selectSavedLocation(savedLocation);
+        });
+        
+        savedLocation.marker = marker;
+        savedLocations.push(savedLocation);
+        
+        // Clear selection state (default unhighlighted)
+        selectedSavedLocation = null;
+        
+        // Update UI
+        renderSavedLocations();
+        
+        // Show confirmation
+        showToast(`Location ${savedId} saved`);
+      }
+      
+      /**
+       * Select a saved location (from sidebar or marker click)
+       */
+      function selectSavedLocation(location) {
+        // Deselect previous
+        if (selectedSavedLocation) {
+          const prevCard = document.querySelector(`[data-location-id="${selectedSavedLocation.id}"]`);
+          if (prevCard) prevCard.classList.remove('selected');
+        }
+        
+        selectedSavedLocation = location;
+        
+        // Highlight card
+        const card = document.querySelector(`[data-location-id="${location.id}"]`);
+        if (card) card.classList.add('selected');
+        
+        // Center map on location
+        map.setView(location.centroid, 14, { animate: true });
+        
+        // Update panel with saved location info
+        document.getElementById('hexagon-info').innerHTML = `
+          <div class="hexagon-info">
+            <div class="hexagon-info-header">
+              <div style="display: flex; align-items: center;">
+                <span class="hexagon-id">${location.hexagonId}</span>
+                <span class="hexagon-badge" style="background: rgba(200, 122, 83, 0.15); color: var(--warm-terracotta); margin-left: 0.5rem;">Saved</span>
+              </div>
+              <span class="hexagon-badge">LOC: ${location.id}</span>
+            </div>
+            <div class="hexagon-stats">
+              <div class="stat-row">
+                <span class="stat-label">📍 Centroid</span>
+                <span class="stat-value">${location.centroid[0].toFixed(5)}, ${location.centroid[1].toFixed(5)}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">📏 Area</span>
+                <span class="stat-value">${location.area.toFixed(3)} km²</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">📐 Perimeter</span>
+                <span class="stat-value">${location.perimeter.toFixed(2)} km</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">🕒 Saved</span>
+                <span class="stat-value">${formatDate(location.timestamp)}</span>
+              </div>
+            </div>
+            <div class="env-score-section">
+              <div class="env-score-label">
+                <span>Environmental Impact Score</span>
+                <span><strong>${location.envScore}</strong>/100</span>
+              </div>
+              <div class="env-score-bar">
+                <div class="env-score-fill" style="width: ${location.envScore}%"></div>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-danger" onclick="deleteSavedLocation('${location.id}')">Delete Location</button>
+              <button class="btn btn-secondary" onclick="exportPDF('${location.hexagonId}')">Export PDF</button>
+            </div>
+          </div>
+        `;
+      }
+      
+      /**
+       * Delete a saved location
+       */
+      function deleteSavedLocation(locationId) {
+        const index = savedLocations.findIndex(l => l.id === locationId);
+        if (index === -1) return;
+        
+        const location = savedLocations[index];
+        
+        // Remove marker from map
+        if (location.marker) {
+          map.removeLayer(location.marker);
+        }
+        
+        // Remove from array
+        savedLocations.splice(index, 1);
+        
+        // Clear selection if needed
+        if (selectedSavedLocation && selectedSavedLocation.id === locationId) {
+          selectedSavedLocation = null;
+          showEmptyHexagonState();
+        }
+        
+        // Re-render list
+        renderSavedLocations();
+        showToast(`Location ${locationId} deleted`);
+      }
+      
+      /**
+       * Render saved locations list in sidebar
+       */
+      function renderSavedLocations() {
+        const container = document.getElementById('saved-locations');
+        
+        if (savedLocations.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📍</div>
+              <p>No saved locations yet</p>
+              <p class="hint-text">Save your current hexagon to bookmark it</p>
+            </div>
+          `;
+          return;
+        }
+        
+        container.innerHTML = savedLocations.map(loc => `
+          <div class="saved-location-card ${selectedSavedLocation && selectedSavedLocation.id === loc.id ? 'selected' : ''}" 
+               data-location-id="${loc.id}"
+               onclick="selectSavedLocation(savedLocations.find(l => l.id === '${loc.id}'))">
+            <div class="saved-location-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C87A53" stroke-width="1.5">
+                <circle cx="12" cy="8" r="5"/>
+                <path d="M12 13c-3 0-5.5 2-6 4.5L12 22l6-4.5c-.5-2.5-3-4.5-6-4.5z"/>
+                <circle cx="10" cy="7" r="1" fill="#2E4A3B"/>
+                <circle cx="14" cy="7" r="1" fill="#2E4A3B"/>
+                <path d="M10 10h4" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="saved-location-content">
+              <div class="saved-location-header">
+                <span class="saved-location-id">${loc.hexagonId}</span>
+                <span class="saved-location-time">${formatDate(loc.timestamp)}</span>
+              </div>
+              <div class="saved-location-coords">${loc.centroid[0].toFixed(4)}, ${loc.centroid[1].toFixed(4)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      /**
+       * Show toast notification
+       */
+      function showToast(message) {
+        // Remove existing toast
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) existingToast.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.cssText = `
+          position: fixed;
+          bottom: 1.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background: var(--deep-forest-sage);
+          color: white;
+          padding: 0.75rem 1.25rem;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          box-shadow: 0 4px 16px rgba(36, 42, 38, 0.25);
+          z-index: 9999;
+          animation: slideUp 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.style.animation = 'slideDown 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 2000);
+      }
+      
+      // ═══════════════════════════════════════════════════════════════
       // BACKEND API
       // ═══════════════════════════════════════════════════════════════
       
       async function loadBackendData() {
+        // Backend connection check removed - using local state only
         const statusEl = document.getElementById("status");
-        const listEl = document.getElementById("sightings");
-        
-        try {
-          const health = await fetch(`${CONFIG.apiBase}/api/health`).then((r) => r.json());
-          statusEl.textContent = `${health.status} (v${health.version})`;
-          statusEl.className = "status-badge ok";
-          
-          const sightings = await fetch(`${CONFIG.apiBase}/api/sightings`).then((r) => r.json());
-          
-          if (sightings.length === 0) {
-            listEl.innerHTML = `
-              <div class="empty-state">
-                <div class="empty-state-icon">🔍</div>
-                <p>No sightings recorded yet</p>
-              </div>
-            `;
-            return;
-          }
-          
-          listEl.innerHTML = sightings.map((s) => {
-            const confidencePercent = (s.confidence * 100).toFixed(0);
-            return `
-              <div class="sighting-card">
-                <div class="sighting-header">
-                  <h3 class="sighting-species">${s.species}</h3>
-                  <span class="sighting-id">ID: ${s.id}</span>
-                </div>
-                <div class="sighting-details">
-                  <div class="detail-item">
-                    <span class="detail-icon">📍</span>
-                    <span>${s.lat.toFixed(4)}, ${s.lon.toFixed(4)}</span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-icon">🕒</span>
-                    <span>${formatDate(s.observed_at)}</span>
-                  </div>
-                  <div class="confidence-bar">
-                    <div class="confidence-track">
-                      <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
-                    </div>
-                    <div class="confidence-label">
-                      <span>Confidence</span>
-                      <span>${confidencePercent}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join("");
-        } catch (e) {
-          statusEl.textContent = "Offline";
-          statusEl.className = "status-badge err";
-          listEl.innerHTML = `
-            <div class="error-message">
-              <strong>Unable to connect to backend</strong><br>
-              Is the server running on port 8080?
-            </div>
-          `;
-        }
+        statusEl.textContent = "Ready";
+        statusEl.className = "status-badge ok";
       }
       
       function formatDate(isoString) {
@@ -1474,7 +1928,7 @@
       
       document.addEventListener('DOMContentLoaded', function() {
         initMap();
-        loadBackendData();
+        renderSavedLocations();
       });
     </script>
   </body>
