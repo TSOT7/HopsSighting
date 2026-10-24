@@ -4,7 +4,7 @@ A map-based app for logging and scoring hops sightings.
 
 ## Structure
 
-```
+``` 
 HopsSighting/
   backend/
     app/              # FastAPI routes, scoring, species modules
