@@ -880,7 +880,71 @@
         }
       }
       /* ═══════════════════════════════════════════════════════════════
-         CITY LABELS & TOOLTIPS
+         HELP TOOLTIP (? icon)
+         ═══════════════════════════════════════════════════════════════ */
+
+      .help-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--border-warm);
+        color: var(--soft-moss);
+        font-size: 0.625rem;
+        font-weight: 700;
+        font-family: var(--font-sans);
+        cursor: default;
+        margin-left: 0.3rem;
+        flex-shrink: 0;
+        position: relative;
+        transition: background 0.15s ease, color 0.15s ease;
+        line-height: 1;
+      }
+
+      .help-icon:hover {
+        background: var(--soft-moss);
+        color: white;
+      }
+
+      .help-icon .help-tip {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--espresso-charcoal);
+        color: #FAF8F5;
+        font-size: 0.75rem;
+        font-weight: 400;
+        line-height: 1.45;
+        padding: 0.45rem 0.65rem;
+        border-radius: 6px;
+        width: 200px;
+        white-space: normal;
+        text-align: left;
+        pointer-events: none;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(36,42,38,0.25);
+      }
+
+      /* Arrow */
+      .help-icon .help-tip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: var(--espresso-charcoal);
+      }
+
+      .help-icon:hover .help-tip {
+        display: block;
+      }
+
+
          ═══════════════════════════════════════════════════════════════ */
 
       .city-label {
@@ -1359,7 +1423,16 @@
         S_L: 'Land reuse',
         S_G: 'Regulatory'
       };
-      
+
+      const SUBSCORE_TIPS = {
+        S_H:  'Measures the quality and intactness of native habitat within the zone — including canopy cover, wetland presence, and absence of invasive species.',
+        S_K:  'Tracks observed or modelled presence of keystone species (e.g. Bald Eagle, Bobcat, Brook Trout) whose loss would cascade through the ecosystem.',
+        S_C:  'Rates how well this zone connects to adjacent habitat patches, enabling safe wildlife movement and genetic exchange across the landscape.',
+        S_Cb: 'Estimates carbon sequestration potential and climate-buffering value of existing vegetation, soil, and wetland cover in the zone.',
+        S_L:  'Scores how much previously disturbed or developed land is available for siting, reducing pressure on untouched habitat.',
+        S_G:  'Reflects proximity to protected areas, conservation restrictions, and regulatory buffer zones that may affect permitting.'
+      };
+
       /**
        * Render the six sub-scores as small labelled bars (0-100, higher = better).
        */
@@ -1372,7 +1445,7 @@
           const color = pct >= 70 ? '#2E4A3B' : pct >= 40 ? '#C87A53' : '#B4472E';
           return `
             <div class="subscore-row" style="display:flex;align-items:center;gap:0.5rem;margin:0.2rem 0;">
-              <span style="flex:0 0 7.5rem;font-size:0.72rem;color:var(--soft-moss);">${SUBSCORE_LABELS[key]}</span>
+              <span style="flex:0 0 7.5rem;font-size:0.72rem;color:var(--soft-moss);display:flex;align-items:center;">${SUBSCORE_LABELS[key]}${helpIcon(SUBSCORE_TIPS[key])}</span>
               <span style="flex:1;height:6px;background:#E4DDD0;border-radius:3px;overflow:hidden;">
                 <span style="display:block;height:100%;width:${pct}%;background:${color};border-radius:3px;"></span>
               </span>
@@ -1420,6 +1493,13 @@
         }
       }
       
+      /**
+       * Returns a grey ? icon with a hover tooltip
+       */
+      function helpIcon(text) {
+        return `<span class="help-icon">?<span class="help-tip">${text}</span></span>`;
+      }
+
       function updateHexagonInfo(hexData) {
         const container = document.getElementById('hexagon-info');
         
@@ -1434,21 +1514,21 @@
             </div>
             <div class="hexagon-stats">
               <div class="stat-row">
-                <span class="stat-label">📍 Centroid</span>
+                <span class="stat-label">📍 Centroid ${helpIcon('The geographic center point of the selected zone, expressed as decimal latitude and longitude.')}</span>
                 <span class="stat-value">${hexData.centroid[0].toFixed(5)}, ${hexData.centroid[1].toFixed(5)}</span>
               </div>
               <div class="stat-row">
-                <span class="stat-label">📏 Area</span>
+                <span class="stat-label">📏 Area ${helpIcon('Total surface area of the hexagonal zone in square kilometres.')}</span>
                 <span class="stat-value">${hexData.area.toFixed(3)} km²</span>
               </div>
               <div class="stat-row">
-                <span class="stat-label">📐 Perimeter</span>
+                <span class="stat-label">📐 Perimeter ${helpIcon('Total boundary length of the zone. Larger perimeters relative to area indicate more irregular edges and higher edge-habitat exposure.')}</span>
                 <span class="stat-value">${hexData.perimeter.toFixed(2)} km</span>
               </div>
             </div>
             <div class="env-score-section">
               <div class="env-score-label">
-                <span>Environmental Impact Score</span>
+                <span>Environmental Impact Score ${helpIcon('A composite score (0–100) estimating ecological sensitivity. It combines land cover type, proximity to protected areas, habitat connectivity, and keystone species presence. Higher = more sensitive.')}</span>
                 <span><strong>${hexData.envScore}</strong>/100</span>
               </div>
               <div class="env-score-bar">
@@ -1709,15 +1789,15 @@
             </div>
             <div class="hexagon-stats">
               <div class="stat-row">
-                <span class="stat-label">📍 Centroid</span>
+                <span class="stat-label">📍 Centroid ${helpIcon('The geographic center point of the selected zone, expressed as decimal latitude and longitude.')}</span>
                 <span class="stat-value">${location.centroid[0].toFixed(5)}, ${location.centroid[1].toFixed(5)}</span>
               </div>
               <div class="stat-row">
-                <span class="stat-label">📏 Area</span>
+                <span class="stat-label">📏 Area ${helpIcon('Total surface area of the hexagonal zone in square kilometres.')}</span>
                 <span class="stat-value">${location.area.toFixed(3)} km²</span>
               </div>
               <div class="stat-row">
-                <span class="stat-label">📐 Perimeter</span>
+                <span class="stat-label">📐 Perimeter ${helpIcon('Total boundary length of the zone. Larger perimeters relative to area indicate more irregular edges and higher edge-habitat exposure.')}</span>
                 <span class="stat-value">${location.perimeter.toFixed(2)} km</span>
               </div>
               <div class="stat-row">
@@ -1727,7 +1807,7 @@
             </div>
             <div class="env-score-section">
               <div class="env-score-label">
-                <span>Environmental Impact Score</span>
+                <span>Environmental Impact Score ${helpIcon('A composite score (0–100) estimating ecological sensitivity. It combines land cover type, proximity to protected areas, habitat connectivity, and keystone species presence. Higher = more sensitive.')}</span>
                 <span><strong>${location.envScore}</strong>/100</span>
               </div>
               <div class="env-score-bar">
