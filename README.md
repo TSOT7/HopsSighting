@@ -1,6 +1,6 @@
 # HopsSighting
 
-A map-based app for logging and scoring hops sightings.
+A map-based app for logging and scoring hops sightings. 
 
 ## Structure
 
