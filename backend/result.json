@@ -1,0 +1,67 @@
+{
+  "location": {
+    "lat": 42.3601,
+    "lon": -72.1
+  },
+  "label": "Forested parcel (central MA)",
+  "site_score": 39,
+  "e_final": 38.5,
+  "grade": "F",
+  "grade_label": "Not recommended",
+  "confidence_band": 13.3,
+  "data_confidence": 33.7,
+  "subscores": {
+    "S_H": 70.5,
+    "S_K": 40.4,
+    "S_C": 88.0,
+    "S_Cb": 0.0,
+    "S_L": 0.9,
+    "S_G": 40.0
+  },
+  "categories": {
+    "E_eco": 63.1,
+    "E_climate": 0.0,
+    "E_site": 20.5
+  },
+  "species": [
+    {
+      "species": "beaver",
+      "risk": 0.676,
+      "reason": "Site overlaps low-gradient stream corridor, adjacent wetland, nearby trees.",
+      "confidence": "medium",
+      "applicable": true
+    },
+    {
+      "species": "bats",
+      "risk": 0.776,
+      "reason": "Site provides mature canopy, a large forest block, water for foraging.",
+      "confidence": "low",
+      "applicable": true
+    },
+    {
+      "species": "pollinators",
+      "risk": 0.215,
+      "reason": "Some edge habitat for pollinators; consider on-site planting.",
+      "confidence": "medium",
+      "applicable": true
+    }
+  ],
+  "flags": [],
+  "mitigation": [
+    "Keep a 30 m undisturbed buffer around wetlands and streams.",
+    "Avoid clearing mature trees between April and September (bat season).",
+    "Plant native pollinator habitat on retained open land.",
+    "Cluster the footprint to preserve the largest contiguous forest block."
+  ],
+  "coverage": "national+MA",
+  "data_sources": [
+    "NLCD",
+    "NWI",
+    "NHD",
+    "PAD-US",
+    "NHESP",
+    "GBIF",
+    "iNaturalist"
+  ],
+  "is_live": false
+}

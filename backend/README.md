@@ -1,16 +1,20 @@
 # HopsSighting Backend
 
-Two decoupled parts, joined by a JSON file on disk:
+Three decoupled parts, joined by a JSON file on disk:
 
 1. **Fetcher** (`app/fetch.py`) — pulls data for a location and writes a
    site-data JSON file.
 2. **Scorer** (`app/score.py`) — reads a site-data JSON file and produces
    the environmental rating, grade, sub-scores, species breakdown, flags,
    and mitigation.
+3. **Reporter** (`app/report.py`) — reads a site-data JSON file and
+   produces a detailed, professional Markdown report that walks through
+   the raw arithmetic behind every factor of the rating. The UI turns
+   this Markdown into a downloadable PDF.
 
 The file is the only coupling between them, so each can be built, run,
-and debugged on its own. The scorer needs nothing but the standard
-library; only the fetcher's live mode uses the network.
+and debugged on its own. The scorer and reporter need nothing but the
+standard library; only the fetcher's live mode uses the network.
 
 The scoring math itself is documented in `../docs/scoring-model.md`.
 
@@ -47,6 +51,19 @@ Available prefilled datasets: `forested`, `suburban`, `developed`
 .venv/bin/python -m app.score datasets/forested.json --json   # full JSON
 .venv/bin/python -m app.score datasets/forested.json -o result.json
 ```
+
+## Part 3 — detailed report
+
+Generate the professional, PDF-ready Markdown report that explains the
+rating with full plugged-in arithmetic for every factor:
+
+```bash
+.venv/bin/python -m app.report datasets/forested.json              # to stdout
+.venv/bin/python -m app.report datasets/forested.json -o report.md # to a file
+```
+
+The report numbers are anchored to the same values the scorer computes,
+so the shown arithmetic always matches the calculated result.
 
 ## The dataset schema
 
