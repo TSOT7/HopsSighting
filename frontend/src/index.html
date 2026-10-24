@@ -389,6 +389,61 @@
       }
       
       /* ═══════════════════════════════════════════════════════════════
+         EXECUTIVE SUMMARY BANNER
+         ═══════════════════════════════════════════════════════════════ */
+      
+      .exec-summary-banner {
+        background: var(--card-white);
+        border: 1px solid var(--border-warm);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin: 0.75rem 0;
+        box-shadow: 0 2px 12px rgba(36, 42, 38, 0.06), 0 1px 4px rgba(36, 42, 38, 0.04);
+        position: relative;
+      }
+      
+      .exec-summary-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        background: rgba(122, 154, 128, 0.12);
+        color: var(--deep-forest-sage);
+        padding: 0.25rem 0.625rem;
+        border-radius: 100px;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.625rem;
+      }
+      
+      .exec-summary-badge svg {
+        width: 12px;
+        height: 12px;
+      }
+      
+      .exec-summary-title {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: 1.0625rem;
+        color: var(--deep-forest-sage);
+        margin: 0 0 0.375rem 0;
+        line-height: 1.4;
+      }
+      
+      .exec-summary-text {
+        font-size: 0.8125rem;
+        line-height: 1.6;
+        color: var(--espresso-charcoal);
+        margin: 0;
+      }
+      
+      .exec-summary-text strong {
+        color: var(--deep-forest-sage);
+        font-weight: 500;
+      }
+      
+      /* ═══════════════════════════════════════════════════════════════
          SIGHTING CARDS
          ═══════════════════════════════════════════════════════════════ */
       
@@ -709,6 +764,20 @@
         </div>
         
         <div class="panel-content">
+          <!-- Executive Summary Banner -->
+          <div class="exec-summary-banner">
+            <div class="exec-summary-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              🌱 Field Intelligence & Siting
+            </div>
+            <h3 class="exec-summary-title">Ecological Awareness for Clean Energy</h3>
+            <p class="exec-summary-text">
+              Smart clean energy siting starts with ecological awareness. Click anywhere on the map to instantly evaluate habitat impact, track keystone species, and find the lowest-impact zones for community development.
+            </p>
+          </div>
+          
           <!-- Selected Hexagon Info -->
           <h2 class="section-title">Selected Hexagon</h2>
           <div id="hexagon-info">
@@ -757,8 +826,7 @@
       // ═══════════════════════════════════════════════════════════════
       
       let map;
-      let drawnHexagons = [];
-      let selectedHexagon = null;
+      let activeHexagon = null; // Single-hexagon mode: only one active hexagon
       let hexagonCounter = 1000;
       
       // ═══════════════════════════════════════════════════════════════
@@ -921,19 +989,26 @@
       }
       
       function drawHexagon(center) {
+        // Remove existing hexagon if present (single-hexagon mode)
+        if (activeHexagon && activeHexagon.polygon) {
+          map.removeLayer(activeHexagon.polygon);
+          activeHexagon = null;
+        }
+        
         const hexId = generateHexagonId();
         const turfHex = createHexagonWithTurf(center, CONFIG.hexRadius);
         const leafletCoords = turfToLeaflet(turfHex);
         const metrics = calculateHexagonMetrics(turfHex);
         
         const polygon = L.polygon(leafletCoords, {
-          color: '#3A5741',
-          weight: 2,
-          fillColor: '#7A9A80',
-          fillOpacity: 0.25
+          color: '#2E4A3B',
+          weight: 3,
+          fillColor: '#2E4A3B',
+          fillOpacity: 0.35
         }).addTo(map);
         
-        const hexData = {
+        // Store as single active hexagon
+        activeHexagon = {
           id: hexId,
           center: center,
           turfHexagon: turfHex,
@@ -944,36 +1019,15 @@
           envScore: generateEnvScore()
         };
         
-        drawnHexagons.push(hexData);
-        
+        // Click handler for re-selection (highlighting)
         polygon.on('click', function(e) {
           L.DomEvent.stopPropagation(e);
-          selectHexagon(hexData);
+          // Already selected, just update UI
+          updateHexagonInfo(activeHexagon);
         });
         
-        selectHexagon(hexData);
-      }
-      
-      function selectHexagon(hexData) {
-        if (selectedHexagon) {
-          selectedHexagon.polygon.setStyle({
-            color: '#3A5741',
-            weight: 2,
-            fillColor: '#7A9A80',
-            fillOpacity: 0.25
-          });
-        }
-        
-        selectedHexagon = hexData;
-        hexData.polygon.setStyle({
-          color: '#2E4A3B',
-          weight: 3,
-          fillColor: '#2E4A3B',
-          fillOpacity: 0.35
-        });
-        
-        hexData.polygon.bringToFront();
-        updateHexagonInfo(hexData);
+        // Immediately update side panel
+        updateHexagonInfo(activeHexagon);
       }
       
       function updateHexagonInfo(hexData) {
@@ -1012,8 +1066,8 @@
               </div>
             </div>
             <div class="btn-group">
-              <button class="btn btn-danger" onclick="deleteHexagon('${hexData.id}')">Remove Parcel</button>
-              <button class="btn btn-secondary" onclick="clearAllHexagons()">Clear Map</button>
+              <button class="btn btn-danger" onclick="removeActiveHexagon()">Remove Parcel</button>
+              <button class="btn btn-secondary" onclick="clearActiveHexagon()">Clear Map</button>
             </div>
             <button class="btn-export" onclick="exportPDF('${hexData.id}')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1043,30 +1097,19 @@
         });
       }
       
-      function deleteHexagon(hexId) {
-        const index = drawnHexagons.findIndex(h => h.id === hexId);
-        if (index === -1) return;
-        
-        const hexData = drawnHexagons[index];
-        map.removeLayer(hexData.polygon);
-        drawnHexagons.splice(index, 1);
-        
-        if (selectedHexagon && selectedHexagon.id === hexId) {
-          selectedHexagon = null;
-          document.getElementById('hexagon-info').innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">⬡</div>
-              <p>No hexagon selected</p>
-              <p class="hint-text">Click on the map to create one</p>
-            </div>
-          `;
+      function removeActiveHexagon() {
+        if (activeHexagon && activeHexagon.polygon) {
+          map.removeLayer(activeHexagon.polygon);
+          activeHexagon = null;
         }
+        showEmptyHexagonState();
       }
       
-      function clearAllHexagons() {
-        drawnHexagons.forEach(h => map.removeLayer(h.polygon));
-        drawnHexagons = [];
-        selectedHexagon = null;
+      function clearActiveHexagon() {
+        removeActiveHexagon();
+      }
+      
+      function showEmptyHexagonState() {
         document.getElementById('hexagon-info').innerHTML = `
           <div class="empty-state">
             <div class="empty-state-icon">⬡</div>
@@ -1164,7 +1207,7 @@
         const { jsPDF } = window.jspdf;
         
         // Find the hexagon data
-        const hexData = drawnHexagons.find(h => h.id === hexId);
+        const hexData = activeHexagon;
         if (!hexData) {
           alert('No hexagon selected for export');
           return;
