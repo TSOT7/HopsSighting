@@ -4,7 +4,15 @@
   "schema_version": "1.0",
   "label": "Forested parcel (central MA)",
   "coverage": "national+MA",
-  "data_sources": ["NLCD", "NWI", "NHD", "PAD-US", "NHESP", "GBIF", "iNaturalist"],
+  "data_sources": [
+    "NLCD",
+    "NWI",
+    "NHD",
+    "PAD-US",
+    "NHESP",
+    "GBIF",
+    "iNaturalist"
+  ],
   "fetched_at": "2026-10-24T00:00:00+00:00",
   "is_live": false,
   "frac_wetland": 0.12,
@@ -26,18 +34,38 @@
   "mean_slope_deg": 6,
   "forest_patch_area_m2": 1500000,
   "species": [
-    {"name": "beaver", "sightings_count": 4},
-    {"name": "bats", "sightings_count": 2},
-    {"name": "pollinators", "sightings_count": 6}
+    {
+      "name": "beaver",
+      "sightings_count": 4
+    },
+    {
+      "name": "bats",
+      "sightings_count": 2
+    },
+    {
+      "name": "pollinators",
+      "sightings_count": 6
+    }
   ],
-  "triggers": {"nhesp_priority_habitat": true, "wetland_or_buffer": true},
+  "triggers": {
+    "nhesp_priority_habitat": true,
+    "wetland_or_buffer": true
+  },
   "hard_triggers": {},
   "n_all_records": 55,
   "nlcd_confidence": 0.85,
   "mean_location_uncertainty_m": 280,
   "layer_available": {
-    "land_cover": true, "tree_canopy": true, "impervious": true,
-    "wetlands": true, "streams": true, "flood": true, "protected": true,
-    "priority_habitat": true, "brownfield": true, "transit": true, "sightings": true
+    "land_cover": true,
+    "tree_canopy": true,
+    "impervious": true,
+    "wetlands": true,
+    "streams": true,
+    "flood": true,
+    "protected": true,
+    "priority_habitat": true,
+    "brownfield": true,
+    "transit": true,
+    "sightings": true
   }
 }
