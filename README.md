@@ -2,7 +2,9 @@
 
 **HopsSighting is a climate-tech platform that uses interactive GIS mapping, biodiversity risk assessment, and environmental impact scoring to help identify sustainable locations for clean energy projects — solar farms, wind installations, and community microgrids — while minimizing ecological harm.**
 
-Clean energy projects stall or get cancelled after years of planning because ecological conflicts are caught too late. HopsSighting surfaces those conflicts at the map-click stage, not the permit-denial stage — giving developers, planners, and communities a 0–100 environmental score with an A–F grade before a single permit is filed.
+CClean energy development faces a “green vs. green” dilemma: projects designed to fight climate change can unintentionally harm the ecosystems they're meant to protect. When ecological conflicts are discovered late, projects can face costly delays, redesigns, or cancellations.
+
+HopsSighting (EcoScribe) tackles this problem early, helping developers, planners, and communities assess potential clean energy sites before the permitting stage. With a single map click, users receive a 0–100 environmental impact score, an A–F grade, biodiversity risk insights, and a detailed site assessment report.
 
 Built for the **Hackachusetts hackathon** — Climate Tech & Clean Energy track.
 
@@ -14,10 +16,10 @@ Built for the **Hackachusetts hackathon** — Climate Tech & Clean Energy track.
 
 ## Features & Functionality
 
-### 🗺️ Interactive GIS Map
+### Interactive GIS Map
 A Leaflet map centred on Massachusetts with the MassGIS 2016 land cover layer overlaid — showing forested, suburban, and developed land in real colour. Click any location to draw a hexagonal siting zone and instantly screen it for clean energy development suitability. Named city markers with hover tooltips provide geographic orientation. Zoom in for street-level detail, zoom out for regional comparison.
 
-### ⚡ Environmental Impact Scoring Engine
+### Environmental Impact Scoring Engine
 A pure-Python engine computes six ecological sub-scores for the selected clean energy site and combines them into an overall 0–100 rating with an A–F grade:
 
 | Factor | What it measures |
@@ -31,19 +33,19 @@ A pure-Python engine computes six ecological sub-scores for the selected clean e
 
 The score is gated by hard regulatory triggers and shrunk toward a conservative prior when data confidence is low — so missing data never produces a falsely favourable score for a clean energy project.
 
-### 📊 Plain-Language Results
+### Plain-Language Results
 Every score comes with a readable breakdown, a species-risk table with individual confidence levels, active regulatory flags, and concrete mitigation suggestions (buffer zones, seasonal construction windows, acoustic monitoring).
 
-### ❓ Inline Help System
+### Inline Help System
 Every metric and factor has a `?` icon that explains what it means in plain language on hover — no GIS background required to interpret the clean energy siting results.
 
-### 📄 Downloadable PDF Report
+### Downloadable PDF Report
 A detailed executive report explaining how the rating was computed — including the factor breakdown, species risk table, spatial metrics, and mitigation recommendations — generated client-side and exported as a PDF for sharing with stakeholders and permitting bodies.
 
-### 🌿 Live Land Cover Overlay
+### Live Land Cover Overlay
 MassGIS Land Use 2016 WMS layer rendered directly on the map, showing where forested, suburban, and developed land sits relative to a proposed clean energy site — at any zoom level.
 
-### 📍 Location Saving & Comparison
+### Location Saving & Comparison
 Save and bookmark multiple siting zones with beaver-marker pins. Revisit and compare saved locations from the side panel to find the optimal clean energy site across a region.
 
 > **Note on data:** The demo scores each location against the nearest of 14 prefilled Massachusetts city datasets. A live mode pulls species and survey data from public APIs (GBIF, iNaturalist). Scoring weights are provisional and pending calibration — this is a screening tool, not a substitute for a permit review or a qualified ecologist.
