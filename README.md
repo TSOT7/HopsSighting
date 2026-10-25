@@ -6,9 +6,9 @@ Pick a location on an interactive map and HopsSighting scores how ecologically s
 
 Built for the **Hackachusetts hackathon** — Climate Tech & Clean Energy track.
 
-## Demo video
+## 🎥 Demo Video
 
-📹 **[Watch the demo on YouTube](youtube.com/watch?v=7c3X2uZRYbA&feature=youtu.be)** 
+[![Watch the EcoScribe Demo](https://img.youtube.com/vi/7c3X2uZRYbA/maxresdefault.jpg)](https://www.youtube.com/watch?v=7c3X2uZRYbA)
 
 ## What it does
 
