@@ -8,6 +8,12 @@ HopsSighting (EcoScribe) tackles this problem early, helping developers, planner
 
 Built for the **Hackachusetts hackathon** — Climate Tech & Clean Energy track.
 
+Collaborators:
+Aanya Bharti,
+Clara Nguyen,
+Thomas Siu,
+& Omar Metwaly
+
 ## 🎥 Demo Video
 
 [![Watch the HopsSighting Demo](https://img.youtube.com/vi/7c3X2uZRYbA/maxresdefault.jpg)](https://www.youtube.com/watch?v=7c3X2uZRYbA)
