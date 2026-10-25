@@ -1,25 +1,54 @@
 # HopsSighting
 
-An environmental site-screening tool for land development in Massachusetts.
+**HopsSighting is a climate-tech platform that uses interactive GIS mapping, biodiversity risk assessment, and environmental impact scoring to help identify sustainable locations for clean energy projects — solar farms, wind installations, and community microgrids — while minimizing ecological harm.**
 
-Pick a location on an interactive map and HopsSighting scores how ecologically sensitive the site is to develop — on a 0–100 scale with an A–F grade — by combining habitat loss, keystone-species risk, habitat connectivity, carbon and climate, land reuse, and regulatory constraints. Every score comes with a plain-language breakdown, a species-risk table, mitigation suggestions, and a downloadable PDF report.
+Clean energy projects stall or get cancelled after years of planning because ecological conflicts are caught too late. HopsSighting surfaces those conflicts at the map-click stage, not the permit-denial stage — giving developers, planners, and communities a 0–100 environmental score with an A–F grade before a single permit is filed.
 
 Built for the **Hackachusetts hackathon** — Climate Tech & Clean Energy track.
 
 ## 🎥 Demo Video
 
-[![Watch the EcoScribe Demo](https://img.youtube.com/vi/7c3X2uZRYbA/maxresdefault.jpg)](https://www.youtube.com/watch?v=7c3X2uZRYbA)
+[![Watch the HopsSighting Demo](https://img.youtube.com/vi/7c3X2uZRYbA/maxresdefault.jpg)](https://www.youtube.com/watch?v=7c3X2uZRYbA)
 
-## What it does
+---
 
-- **Interactive map (Leaflet):** click anywhere on the Massachusetts hex-grid to screen that location.
-- **Real scoring engine (Python):** six sub-scores — habitat integrity, keystone species, connectivity, carbon & climate, land reuse, and regulatory — combined into an overall 0–100 environmental rating with an A–F grade.
-- **Keystone-species modules:** beaver, bats, and native pollinators, each with a habitat-based risk and a confidence level.
-- **MassGIS land cover overlay:** live WMS layer showing forested, suburban, and developed land directly on the map.
-- **Hover tooltips on every metric:** grey `?` icons explain what each score and factor means in plain language.
-- **Downloadable PDF report:** generated client-side, includes the score, factor breakdown, species risk table, and mitigation recommendations.
+## Features & Functionality
 
-> **Note on data:** the demo scores each clicked location against the nearest of 14 prefilled Massachusetts city datasets. Scoring weights and thresholds are provisional placeholders pending calibration — the relative ordering of sites is sensible, absolute grades are not yet production-trustworthy. This is a screening tool, not a substitute for a permit review or a qualified ecologist.
+### 🗺️ Interactive GIS Map
+A Leaflet map centred on Massachusetts with the MassGIS 2016 land cover layer overlaid — showing forested, suburban, and developed land in real colour. Click any location to draw a hexagonal siting zone and instantly screen it for clean energy development suitability. Named city markers with hover tooltips provide geographic orientation. Zoom in for street-level detail, zoom out for regional comparison.
+
+### ⚡ Environmental Impact Scoring Engine
+A pure-Python engine computes six ecological sub-scores for the selected clean energy site and combines them into an overall 0–100 rating with an A–F grade:
+
+| Factor | What it measures |
+|---|---|
+| **Habitat integrity** | Quality and intactness of native habitat — canopy cover, wetlands, invasive species absence |
+| **Keystone species risk** | Observed or modelled presence of beaver, bats, and native pollinators whose loss cascades through the ecosystem |
+| **Connectivity** | How well the zone connects to adjacent habitat patches, enabling wildlife movement and genetic exchange |
+| **Carbon & climate** | Carbon sequestration potential of existing vegetation, soil, and wetland cover at the proposed clean energy site |
+| **Land reuse** | How much previously disturbed or developed land is available — rewards siting clean energy on brownfields over untouched habitat |
+| **Regulatory** | Proximity to protected areas, conservation restrictions, and regulatory buffer zones that could affect clean energy permitting |
+
+The score is gated by hard regulatory triggers and shrunk toward a conservative prior when data confidence is low — so missing data never produces a falsely favourable score for a clean energy project.
+
+### 📊 Plain-Language Results
+Every score comes with a readable breakdown, a species-risk table with individual confidence levels, active regulatory flags, and concrete mitigation suggestions (buffer zones, seasonal construction windows, acoustic monitoring).
+
+### ❓ Inline Help System
+Every metric and factor has a `?` icon that explains what it means in plain language on hover — no GIS background required to interpret the clean energy siting results.
+
+### 📄 Downloadable PDF Report
+A detailed executive report explaining how the rating was computed — including the factor breakdown, species risk table, spatial metrics, and mitigation recommendations — generated client-side and exported as a PDF for sharing with stakeholders and permitting bodies.
+
+### 🌿 Live Land Cover Overlay
+MassGIS Land Use 2016 WMS layer rendered directly on the map, showing where forested, suburban, and developed land sits relative to a proposed clean energy site — at any zoom level.
+
+### 📍 Location Saving & Comparison
+Save and bookmark multiple siting zones with beaver-marker pins. Revisit and compare saved locations from the side panel to find the optimal clean energy site across a region.
+
+> **Note on data:** The demo scores each location against the nearest of 14 prefilled Massachusetts city datasets. A live mode pulls species and survey data from public APIs (GBIF, iNaturalist). Scoring weights are provisional and pending calibration — this is a screening tool, not a substitute for a permit review or a qualified ecologist.
+
+---
 
 ## How Kiro was used
 
@@ -38,10 +67,12 @@ Three always-on steering files in `.kiro/steering/` kept Kiro aligned with proje
 A `PostFileSave` hook in `.kiro/hooks/backend-test-on-save.json` automatically runs the pytest suite whenever a Python file under `backend/` is saved. This tightened the feedback loop significantly — test failures surfaced immediately rather than at the end of a work session.
 
 ### Vibe coding for the frontend
-The interactive map, hexagon drawing system, city markers, MassGIS WMS integration, PDF export, and the organic-editorial design system were built through iterative conversation with Kiro in Autopilot mode. Kiro read existing code before every edit, matched the project's conventions, and verified changes by checking for regressions — closer to pair programming than prompt-and-paste.
+The interactive map, hexagon drawing system, city markers, MassGIS WMS integration, PDF export, inline help tooltips, and the organic-editorial design system were all built through iterative conversation with Kiro in Autopilot mode. Kiro read existing code before every edit, matched the project's conventions, and verified changes — closer to pair programming than prompt-and-paste.
 
 ### What made the biggest difference
-The combination of steering docs + spec was the highest-leverage move. Steering meant Kiro never forgot the project's constraints (no Node, UTC timestamps, `/api` prefix). The spec meant the scoring engine was designed before it was coded, which caught several edge cases — the conservative prior for low-confidence data, the hard regulatory gate — that would have been painful to retrofit.
+The combination of steering docs + spec was the highest-leverage move. Steering meant Kiro never forgot the project's constraints (no Node, UTC timestamps, `/api` prefix). The spec meant the scoring engine was designed before it was coded, catching edge cases — the conservative prior for low-confidence data, the hard regulatory gate — that would have been painful to retrofit.
+
+---
 
 ## Tech Stack
 
@@ -65,6 +96,7 @@ The combination of steering docs + spec was the highest-leverage move. Steering 
 | Server | [Uvicorn](https://www.uvicorn.org/) (ASGI) |
 | Data validation | [Pydantic](https://docs.pydantic.dev/) v2 |
 | Geospatial data | MassGIS datasets (forested, suburban, developed JSON) |
+| Species data | GBIF + iNaturalist public APIs |
 | Runtime | Python 3.11+ |
 
 ### Design System
@@ -72,91 +104,44 @@ The combination of steering docs + spec was the highest-leverage move. Steering 
 - Responsive two-panel layout: full-height map canvas + floating side panel
 - Print-optimised styles for executive PDF reports
 
-
-
-### Frontend
-| Layer | Technology |
-|---|---|
-| Map engine | [Leaflet](https://leafletjs.com/) 1.9.4 |
-| Basemap | Esri World Topo (free, no key) |
-| Land cover overlay | MassGIS Land Use 2016 WMS |
-| State boundary | PublicaMundi US States GeoJSON |
-| Geospatial math | [Turf.js](https://turfjs.org/) 6 |
-| PDF export | [jsPDF](https://github.com/parallax/jsPDF) 2.5 |
-| Fonts | Inter + Playfair Display (Google Fonts) |
-| Runtime | Plain HTML/CSS/JS — no build step, no framework |
-| Static server | Python stdlib `http.server` via `serve.py` |
-
-### Backend
-| Layer | Technology |
-|---|---|
-| API framework | [FastAPI](https://fastapi.tiangolo.com/) |
-| Server | [Uvicorn](https://www.uvicorn.org/) (ASGI) |
-| Data validation | [Pydantic](https://docs.pydantic.dev/) v2 |
-| Geospatial data | MassGIS datasets (forested, suburban, developed JSON) |
-| Runtime | Python 3.11+ |
-
-### Design System
-- Organic-editorial palette: forest sage, soft moss, warm terracotta, espresso charcoal
-- Responsive two-panel layout: full-height map canvas + floating side panel
-- Print-optimised styles for executive PDF reports
+---
 
 ## Structure
 
-``` 
+```
 HopsSighting/
+  .kiro/
+    steering/         # always-on project context
+    specs/            # structured feature specs (requirements/design/tasks)
+    hooks/            # automated agent workflows
   backend/
-    app/              # FastAPI routes, scoring, species modules
-      main.py         # hello-world API (health + sightings)
-    data/             # cached layers (gitignored)
+    app/              # FastAPI routes, scoring engine, species modules
+    datasets/         # prefilled MA city datasets (forested/suburban/developed)
+    tests/            # pytest suite
     requirements.txt
-    .venv/            # local Python env (gitignored)
   frontend/
-    src/              # map, side panel, report view
-      index.html      # hello-world page that calls the backend
-    serve.py          # tiny static server (Python stdlib, no Node/Deno)
+    src/index.html    # the full web app (map, side panel, PDF export)
+    serve.py          # Python stdlib static server
   docs/
-    api-contract.md   # shared JSON contract between front/back
-  .gitignore
+    api-contract.md   # shared JSON contract between front and back
   README.md
 ```
 
 ## Prerequisites
 
-- Python 3.11+ (tested on 3.14) — that's it.
+- Python 3.11+ — that's it.
 
-> No Node or Deno required. The frontend is a static page served by Python's
-> built-in HTTP server, so anyone who can run the backend can run the frontend.
-> When we move to a real UI framework (React/Vite) we'll install Node then; the
-> API contract won't change.
+> No Node or Deno required. The frontend is a static page served by Python's built-in HTTP server.
 
 ## Run it (two terminals)
 
-Each step below is one command per line. Don't paste the `#` comments — the
-shell treats `#` as the start of a comment and it can break the line.
-
 ### 1. Backend — FastAPI on :8080
-
-First time only (create the env and install deps):
 
 ```bash
 cd backend
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-```
-
-Every time (start the server):
-
-```bash
-cd backend
 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8080 --reload
-```
-
-Check it in a browser or with curl (note: `/` returns 404, use `/api/...`):
-
-```bash
-curl http://localhost:8080/api/health
-curl http://localhost:8080/api/sightings
 ```
 
 ### 2. Frontend — static page on :8000
@@ -166,71 +151,8 @@ cd frontend
 python3 serve.py
 ```
 
-Open http://localhost:8000 — you should see the backend status and one sample
-sighting rendered from live JSON.
-
-To stop either server, press `Ctrl+C` in its terminal.
+Open http://localhost:8000
 
 ## API contract
 
-See [docs/api-contract.md](docs/api-contract.md). Two endpoints for now:
-`GET /api/health` and `GET /api/sightings`.
-
-## 🛠️ Built with Kiro: Engineering Workflow & Best Practices
-
-To build **EcoScribe**—a decision-support platform for climate-conscious clean energy siting—we partnered with **Kiro** across our entire development lifecycle. Rather than relying on unstructured code generation, we utilized Kiro’s advanced feature set to execute a disciplined, spec-driven engineering strategy across both our frontend GIS workspace and backend spatial scoring engine.
-
----
-
-### 1. Tooling & Interface Usage (IDE vs. CLI)
-We leveraged a hybrid workflow using **Kiro IDE** alongside **Kiro CLI**:
-* **Kiro IDE:** Served as our command center for UI layout, Leaflet/Turf.js map interaction tuning, and real-time visual inspection of specs and steering files.
-* **Kiro CLI:** Used for rapid backend API development, running automated database migrations, and executing test suites directly in terminal environments.
-* **Impact:** Kiro IDE gave us a holistic, side-by-side view of requirements, code, and live map previewing, while Kiro CLI allowed for hyper-focused, low-latency execution loops when writing logic for our multi-factor scoring algorithms.
-
----
-
-### 2. Spec-Driven Development vs. "Vibe Coding"
-We engineered the Sightings MVP strictly following a **Requirements → System Design → Numbered Tasks** pipeline before writing implementation code.
-
-* **Spec Structure:** Our spec explicitly defined functional requirements, data models, edge cases, and numbered acceptance criteria for every feature (from single-hexagon selection logic to PDF export utilities).
-* **Process Improvement:** Every code change and pull request directly traced back to a numbered requirement in the spec, eliminating scope creep and ensuring complete alignment between backend scoring APIs and frontend GIS state management.
-* **Why it Beat "Vibe Coding":** Unstructured "vibe coding" often leads to subtle state regressions—like desynchronization between map pins and side panels. Spec-driven development guaranteed that spatial state invariants (e.g., active exploration vs. bookmarked saved locations) were preserved deterministically across code iterations.
-
----
-
-### 3. Agent Hooks & Automated Workflows
-We configured custom **Kiro save-triggered agent hooks** to automate feedback loops and enforce code quality:
-* **Automated Test Execution:** Every time backend scoring functions or spatial helper files were saved, a hook automatically triggered our backend test runner.
-* **Workflow Impact:** This dramatically tightened our feedback loop. When tweaking ecological weight factors or geospatial boundary checks, edge cases and syntax regressions were caught immediately in the background without manual context switching.
-
----
-
-### 4. Steering Docs & Context Persistence
-We established project-level steering documentation (`product`, `tech`, and `structure` guidelines) to persist context and guide Kiro’s code generation across sessions:
-* **Core Guardrails Enforced:**
-  * Strict API routing under `/api`
-  * Mandatory UTC timestamp formatting across database records and PDF report exports
-  * Lean, browser-native frontend implementation (no Node/npm build tools for client-side rendering)
-* **Key Strategy:** Defining explicit "do not" constraints in our tech steering docs (e.g., *"never introduce bundlers for frontend script tags"*) prevented context drift and saved hours that would otherwise be spent re-explaining architectural boundaries every session.
-
----
-
-### 5. Model Context Protocol (MCP) Integration
-By extending Kiro through **MCP (Model Context Protocol)**, we connected the agent directly to external geospatial utilities and environmental dataset schemas:
-* **Enhanced Capabilities:** MCP enabled Kiro to query spatial coordinates, validate GeoJSON polygon structures, and inspect external municipal GIS schemas during code generation.
-* **Impact:** Without MCP, translating complex GIS data models (such as land parcel boundaries and keystone species corridors) into clean backend database structures would have required manual schema copying and error-prone boilerplate mapping.
-
----
-
-### 6. Property-Based Testing (PBT) for the Scoring Engine
-For our multi-factor environmental scoring engine—which balances **Ecology (50%)**, **Climate (30%)**, and **Site Logistics (20%)**—we instructed Kiro to implement property-based testing as specified in our testing strategy:
-* **Requirements Enabled:** Tested the scoring algorithm for **determinism** (identical spatial coordinates always yield identical eco-scores) and **bounded invariant ranges** (scores strictly remain within valid $0–100$ boundaries regardless of missing data layers or extreme coordinate inputs).
-* **Issues Caught:** PBT exposed a subtle edge case where overlapping penalty weights for keystone species and soil contamination could cause negative sub-scores. PBT caught this before deployment, allowing us to enforce proper score clamping logic.
-
----
-
-### 7. Kiro Powers & Bundled Best Practices
-We leveraged **Kiro Powers** to bake industry best practices directly into our project architecture:
-* **Bundled Expertise:** Enabled domain-specific powers for API contract validation, GIS spatial math standards, and accessible UI component patterns.
-* **Integrations:** This allowed us to cleanly integrate complex third-party tools—such as client-side PDF generation (`html2pdf.js`) and client-side spatial calculations (`Turf.js`)—with bulletproof error handling.
+See [docs/api-contract.md](docs/api-contract.md) — the source of truth for all endpoints. Key routes: `GET /api/health`, `GET /api/sightings`, `POST /api/score`, `POST /api/report`.
