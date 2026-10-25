@@ -8,7 +8,7 @@ Built for the **Hackachusetts hackathon** — Climate Tech & Clean Energy track.
 
 ## Demo video
 
-📹 **[Watch the demo on YouTube](#)** ← _replace with your link before submitting_
+📹 **[Watch the demo on YouTube](youtube.com/watch?v=7c3X2uZRYbA&feature=youtu.be)** 
 
 ## What it does
 
